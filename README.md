@@ -1,25 +1,25 @@
 <div align="center">
-  <h1>💍 KDT Hackathon 2026 — Frontend</h1>
-  <p><b>결혼 준비 커플을 위한 재무 관리 서비스의 프론트엔드 저장소</b></p>
+  <h1>💳 금융한걸음 — Frontend</h1>
+  <p><b>실제 송금 없이 배우는 생성형 AI 금융 실습 튜터</b></p>
 </div>
 
 ## 🏆 프로젝트 정보
 
 | 구분 | 내용 |
 | --- | --- |
-| **팀명** | KDT Hackathon 2026 |
-| **팀 주제** | 결혼 준비 커플을 위한 재무 목표·공동 예산·지출 관리 및 카드 전략 추천 서비스 |
-
+| **팀명** | 금융한걸음 |
+| **팀 주제** | 고령층과 디지털 금융 초보자를 위한 가상 계좌이체 실습 서비스 |
 
 ## 🛠 기술 스택
 
 | 구분 | 기술 |
 | --- | --- |
-| **Frontend** | Vue 3, JavaScript, Pinia |
-| **Styling** | Tailwind CSS, shadcn-vue |
-| **실시간 통신** | SSE (Server-Sent Events) |
-| **기타** | PWA |
-| **Backend** | 추후 확정 |
+| **Frontend** | Vue 3, JavaScript |
+| **Backend** | Spring |
+| **Database** | MySQL |
+| **AI** | 생성형 AI API, 단계별 맞춤 안내 |
+| **음성 안내** | Web Speech API (TTS) |
+| **협업 도구** | GitHub, Notion, Figma |
 
 ## 📦 저장소
 
