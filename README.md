@@ -1,38 +1,50 @@
-<div align="center">
-  <h1>💳 금융한걸음 — Frontend</h1>
-  <p><b>실제 송금 없이 배우는 생성형 AI 금융 실습 튜터</b></p>
-</div>
+# Frontend
 
-## 🏆 프로젝트 정보
+Vue 3와 TypeScript를 사용하는 프론트엔드 기본 프로젝트입니다.
 
-| 구분 | 내용 |
-| --- | --- |
-| **팀명** | 금융한걸음 |
-| **팀 주제** | 고령층과 디지털 금융 초보자를 위한 가상 계좌이체 실습 서비스 |
+- TODO(확인 필요): 공식 프로젝트명
+- TODO(확인 필요): 서비스 설명과 핵심 사용자 흐름
+- TODO(확인 필요): API 명세와 인증 방식
 
-## 🛠 기술 스택
+## 기술 스택
 
-| 구분 | 기술 |
-| --- | --- |
-| **Frontend** | Vue 3, JavaScript |
-| **Backend** | Spring |
-| **Database** | MySQL |
-| **AI** | 생성형 AI API, 단계별 맞춤 안내 |
-| **음성 안내** | Web Speech API (TTS) |
-| **협업 도구** | GitHub, Notion, Figma |
+- Vue 3 Composition API
+- TypeScript (strict)
+- Vite
+- Pinia
+- Vue Router
+- Tailwind CSS v4
+- Axios
 
-## 📦 저장소
+## 시작하기
 
-| 구분 | 저장소 |
-| --- | --- |
-| **Frontend** | [kdt-hackathon-2026/front](https://github.com/kdt-hackathon-2026/front) |
-| **Backend** | [kdt-hackathon-2026/back](https://github.com/kdt-hackathon-2026/back) |
+Node.js `20.19.0` 이상이 필요합니다.
 
-## 🌿 브랜치 전략
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
 
-- `main`: 최종 배포 및 안정 버전
-- `develop`: 기능 통합 브랜치
-- `feat/{이슈번호}-{기능명}`: 기능 개발
-- `fix/{이슈번호}-{수정명}`: 버그 수정
-- 이슈 브랜치는 `develop`에서 생성하고, 작업 완료 후 `develop`을 대상으로 PR을 생성합니다.
-- 배포 준비가 완료되면 `develop → main` PR을 생성합니다.
+`VITE_API_BASE_URL`은 API 서버가 확정된 뒤 로컬 `.env`에 설정합니다. 실제 환경변수 파일은
+Git에 포함하지 않습니다.
+
+## 주요 명령
+
+```bash
+npm run dev
+npm run format:check
+npm run lint
+npm run typecheck
+npm run build
+```
+
+## 구조
+
+이 프로젝트는 MVVM 경계를 기준으로 구성합니다.
+
+- Model: `src/apis`, `src/types`, `src/models`
+- ViewModel: `src/stores`, `src/composables`
+- View: `src/views`, `src/components`, `src/layouts`
+
+세부 개발 규칙은 `AGENTS.md`를 확인하세요.
