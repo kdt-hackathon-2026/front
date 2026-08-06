@@ -1,40 +1,22 @@
 {
-  "name": "frontend",
-  "version": "0.0.0",
+  "name": "financial-first-step-frontend",
+  "version": "1.0.0",
   "private": true,
+  "description": "금융한걸음 - 고령층 대상 계좌이체/AI ARS 반복연습 교육 서비스 프론트엔드 (Vue 3 + Vite, Spring Legacy 통합용)",
   "type": "module",
-  "engines": {
-    "node": "^20.19.0 || >=22.12.0"
-  },
   "scripts": {
     "dev": "vite",
-    "build": "npm run typecheck && vite build",
-    "preview": "vite preview",
-    "typecheck": "vue-tsc --build --force",
-    "lint": "eslint . --max-warnings=0",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "axios": "1.19.0",
-    "pinia": "4.0.2",
-    "vue": "3.5.40",
-    "vue-router": "4.6.4"
+    "axios": "^1.7.7",
+    "pinia": "^2.2.4",
+    "vue": "^3.4.38",
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
-    "@eslint/js": "10.0.1",
-    "@tailwindcss/vite": "4.3.3",
-    "@types/node": "20.19.43",
-    "@vitejs/plugin-vue": "6.0.8",
-    "eslint": "10.8.0",
-    "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-vue": "10.10.0",
-    "globals": "17.9.0",
-    "prettier": "3.9.6",
-    "tailwindcss": "4.3.3",
-    "typescript": "6.0.3",
-    "typescript-eslint": "8.66.0",
-    "vite": "8.2.0",
-    "vue-tsc": "3.3.9"
+    "@vitejs/plugin-vue": "^5.1.3",
+    "vite": "^5.4.2"
   }
 }
