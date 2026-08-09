@@ -54,12 +54,20 @@ npm run dev        # http://localhost:5173, /api 요청은 vite.config.ts의 pro
 Spring Legacy 컨트롤러가 준비되면 `src/api/practiceApi.ts`의 각 함수에서
 `USE_MOCK` 분기 대신 실제 axios 호출만 타도록 자연스럽게 전환됩니다(코드 수정 없이 env 값만 `false`로 변경).
 
+## GitHub Pages 자동 배포
+
+- 배포 주소: `https://kdt-hackathon-2026.github.io/front/`
+- `main` 브랜치에 push 또는 merge하면 `.github/workflows/deploy.yml`이 자동으로 빌드·배포합니다.
+- 저장소의 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 설정해야 합니다.
+- Vite 기본 경로는 `/front/`이며, Pages에서 하위 화면을 새로고침할 때를 위한 `404.html`도 배포 과정에서 자동 생성합니다.
+- 최초 배포는 저장소의 **Actions** 탭에서 `Deploy to GitHub Pages`가 성공한 뒤 확인하세요.
+
 ## Spring Legacy(WAR)에 합치는 방법
 
 ### 방법 A. 정적 산출물을 webapp에 그대로 복사 (가장 간단, 권장)
 
-1. 컨텍스트 경로를 정합니다. 예: 톰캣에서 `/hangeoleum/` 아래로 서비스한다면 `.env.production`의
-   `VITE_BASE_PATH=/hangeoleum/` 을 유지합니다. 루트 컨텍스트(`/`)로 서비스한다면 `/` 로 바꾸세요.
+1. 컨텍스트 경로를 정합니다. 현재 기본값은 GitHub Pages용 `/front/`입니다. 톰캣에서
+   `/hangeoleum/` 아래로 서비스한다면 `VITE_BASE_PATH=/hangeoleum/ npm run build`처럼 빌드 시 지정하세요.
 2. 빌드합니다.
    ```bash
    npm run build

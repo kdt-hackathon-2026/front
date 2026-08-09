@@ -74,7 +74,10 @@ interface KbTutorGuide { title: string; steps: KbTutorStep[] }
 const guides: Record<string, KbTutorGuide> = {
   home: {
     title: '은행 홈',
-    steps: [{ elementId: 'transfer-practice-button', instruction: '노란색 계좌이체 버튼을 누르면 이체 연습을 시작할 수 있어요.' }]
+    steps: [
+      { elementId: 'kb-account-switches', instruction: '계좌 카드 양옆의 <, > 버튼을 눌러 출금할 계좌를 선택할 수 있어요. 선택한 계좌에서 돈이 빠져나가요.' },
+      { elementId: 'transfer-practice-button', instruction: '사진처럼 노란색 계좌이체 버튼을 누르면 이체 연습을 시작할 수 있어요.' }
+    ]
   },
   menu: {
     title: '전체 메뉴',

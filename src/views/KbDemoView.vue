@@ -15,9 +15,9 @@
           </button>
         </div>
         <nav class="home-links" aria-label="KB 메뉴">
-          <button><Icon name="bell" :size="20" /><small>알림</small><i /></button>
-          <button>상담</button>
-          <button>검색</button>
+          <button @click="notifyUnavailable"><Icon name="bell" :size="20" /><small>알림</small><i /></button>
+          <button @click="notifyUnavailable">상담</button>
+          <button @click="notifyUnavailable">검색</button>
           <button @click="openMenu">메뉴</button>
         </nav>
       </div>
@@ -28,18 +28,27 @@
         <span class="family-pill"><Icon name="users" :size="16" /> 패밀리</span>
       </button>
 
-      <article class="account-card">
+      <article class="account-card" aria-label="본인 계좌 선택">
+        <div class="account-switch-controls" data-tutor-id="kb-account-switches" aria-label="출금할 계좌 선택">
+        <button class="account-switch account-switch--prev" aria-label="이전 본인 계좌" :disabled="homeAccountIndex === 0" @click="showPreviousAccount">
+          <Icon name="chevron-left" :size="22" />
+        </button>
+        <button class="account-switch account-switch--next" aria-label="다음 본인 계좌" :disabled="homeAccountIndex === sourceAccounts.length - 1" @click="showNextAccount">
+          <Icon name="chevron-right" :size="22" />
+        </button>
+        </div>
         <div class="account-card__title">
           <span class="kb-mark">KB</span>
-          보통예금
-          <button aria-label="계좌 메뉴"><Icon name="menu" :size="20" /></button>
+          <span>{{ currentHomeAccount.name || '보통예금' }}</span>
+          <button aria-label="계좌 메뉴" @click="notifyUnavailable"><Icon name="menu" :size="20" /></button>
         </div>
-        <div class="account-number">{{ formatAccount(primaryAccount.number) }} <button aria-label="계좌번호 복사" @click="copyAccount(primaryAccount.number)"><Icon name="copy" :size="17" /></button></div>
-        <div class="account-balance">{{ balance.toLocaleString('ko-KR') }}<span>원</span> <em>숨김</em></div>
+        <div class="account-number">{{ formatAccount(currentHomeAccount.number) }} <button aria-label="계좌번호 복사" @click="copyAccount(currentHomeAccount.number)"><Icon name="copy" :size="17" /></button></div>
+        <div class="account-balance">{{ currentHomeAccountBalance.toLocaleString('ko-KR') }}<span>원</span> <em>숨김</em></div>
         <div class="account-actions">
-          <button class="primary-yellow" data-tutor-id="transfer-practice-button" @click="startTransfer">계좌이체</button>
-          <button class="disabled-action" @click="notify('연락처 이체는 이 연습에서 지원하지 않아요.')">연락처이체</button>
+          <button class="primary-yellow" data-tutor-id="transfer-practice-button" @click="startTransferFrom(currentHomeAccount)">계좌이체</button>
+          <button class="disabled-action" @click="notifyUnavailable">연락처이체</button>
         </div>
+        <span class="account-switch__position">{{ homeAccountIndex + 1 }} / {{ sourceAccounts.length }}</span>
       </article>
 
       <button class="representative-row" @click="openSettings">
@@ -47,34 +56,34 @@
       </button>
 
       <div class="home-service-card">
-        <button @click="notify('번호표 기능은 화면 예시입니다.')"><span class="service-icon green"><Icon name="building" /></span><span><strong>은행가서 기다리지 않는 방법</strong><small>번호표 미리 뽑기</small></span><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><span class="service-icon green"><Icon name="building" /></span><span><strong>은행가서 기다리지 않는 방법</strong><small>번호표 미리 뽑기</small></span><Icon name="chevron-right" /></button>
         <button @click="openHistory"><span class="service-icon yellow"><Icon name="history" /></span><strong>통합거래내역</strong><Icon name="chevron-right" /></button>
-        <button @click="notify('자동이체 관리는 화면 예시입니다.')"><span class="service-icon purple"><Icon name="refresh" /></span><strong>자동이체 관리</strong><Icon name="chevron-right" /></button>
-        <button @click="notify('실제 인증정보를 입력하지 않는 안전한 연습입니다.')"><span class="service-icon teal"><Icon name="shield" /></span><strong>보안서비스</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><span class="service-icon purple"><Icon name="refresh" /></span><strong>자동이체 관리</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><span class="service-icon teal"><Icon name="shield" /></span><strong>보안서비스</strong><Icon name="chevron-right" /></button>
         <button @click="openSettings"><span class="service-icon gray"><Icon name="settings" /></span><strong>환경설정</strong><Icon name="chevron-right" /></button>
       </div>
 
       <div class="ars-card">
         <strong><Icon name="alert-triangle" :size="20" /> 사고신고 전화(ARS)</strong>
-        <div><button><Icon name="phone" :size="18" /> 1588-9999</button><button><Icon name="phone" :size="18" /> 1599-9999</button></div>
+        <div><button @click="notifyUnavailable"><Icon name="phone" :size="18" /> 1588-9999</button><button @click="notifyUnavailable"><Icon name="phone" :size="18" /> 1599-9999</button></div>
       </div>
       <p class="notice-line"><Icon name="megaphone" :size="18" /> 공지&nbsp; 2026년 KB국민은행 금융자산 안내</p>
       <div class="kb-paybar"><span><Icon name="wallet" :size="20" /> KB Pay</span><span><Icon name="document" :size="20" /> 국민지갑(신분증)</span></div>
       <nav class="bottom-nav" aria-label="하단 메뉴">
-        <button class="active"><Icon name="wallet" /><small>전체계좌</small></button>
-        <button><Icon name="building" /><small>금융상품</small></button>
-        <button><Icon name="chart" /><small>자산관리</small></button>
-        <button><Icon name="gift" /><small>혜택</small></button>
-        <button><Icon name="car" /><small>자동차</small></button>
+        <button class="active" @click="notifyUnavailable"><Icon name="wallet" /><small>전체계좌</small></button>
+        <button @click="notifyUnavailable"><Icon name="building" /><small>금융상품</small></button>
+        <button @click="notifyUnavailable"><Icon name="chart" /><small>자산관리</small></button>
+        <button @click="notifyUnavailable"><Icon name="gift" /><small>혜택</small></button>
+        <button @click="notifyUnavailable"><Icon name="car" /><small>자동차</small></button>
       </nav>
     </section>
 
     <section v-else-if="screen === 'menu'" class="kb-page menu-page">
-      <div class="menu-head"><button @click="goHome">로그아웃 <Icon name="chevron-right" :size="17" /></button><div><button aria-label="검색"><Icon name="search" /></button><button aria-label="닫기" @click="goHome"><Icon name="close" /></button></div></div>
-      <div class="menu-shortcuts"><button><Icon name="phone" />고객센터</button><button><Icon name="shield" />인증/보안</button><button @click="openSettings"><Icon name="settings" />환경설정</button></div>
-      <div class="menu-section"><div class="section-heading"><strong>최근/My메뉴</strong><button>My메뉴 설정 <Icon name="chevron-right" :size="17" /></button></div><div class="chip-row"><button @click="openSettings"><Icon name="settings" :size="17" /> 환경설정</button><button><Icon name="star" :size="17" /> 환전 신청</button></div></div>
-      <div class="menu-section product-section"><h2><span class="kb-mini">KB</span> 상품가입/관리</h2><div class="product-grid"><button>추천상품</button><button>예적금</button><button>대출</button><button>입출금</button><button>퇴직연금</button><button>펀드</button><button>청약/채권</button><button>ISA</button><button>외화예금</button><button>보험</button><button>신탁</button><button>골드/실버</button></div></div>
-      <div class="menu-section inquiry-section"><h2><span class="round-icon"><Icon name="search" /></span> 조회</h2><button>전체계좌조회</button><button @click="openHistory">통합거래내역조회</button><button>패밀리뱅킹<small>부부 모임통장/노후자금, 우리아이 금융상품 관리</small></button><button>휴면예금·보험금 찾기</button><button>계좌관리<small>비밀번호 관리, 계좌통합관리서비스 등</small></button></div>
+      <div class="menu-head"><button @click="goHome">로그아웃 <Icon name="chevron-right" :size="17" /></button><div><button aria-label="검색" @click="notifyUnavailable"><Icon name="search" /></button><button aria-label="닫기" @click="goHome"><Icon name="close" /></button></div></div>
+      <div class="menu-shortcuts"><button @click="notifyUnavailable"><Icon name="phone" />고객센터</button><button @click="notifyUnavailable"><Icon name="shield" />인증/보안</button><button @click="openSettings"><Icon name="settings" />환경설정</button></div>
+      <div class="menu-section"><div class="section-heading"><strong>최근/My메뉴</strong><button @click="notifyUnavailable">My메뉴 설정 <Icon name="chevron-right" :size="17" /></button></div><div class="chip-row"><button @click="openSettings"><Icon name="settings" :size="17" /> 환경설정</button><button @click="notifyUnavailable"><Icon name="star" :size="17" /> 환전 신청</button></div></div>
+      <div class="menu-section product-section"><h2><span class="kb-mini">KB</span> 상품가입/관리</h2><div class="product-grid"><button @click="notifyUnavailable">추천상품</button><button @click="notifyUnavailable">예적금</button><button @click="notifyUnavailable">대출</button><button @click="notifyUnavailable">입출금</button><button @click="notifyUnavailable">퇴직연금</button><button @click="notifyUnavailable">펀드</button><button @click="notifyUnavailable">청약/채권</button><button @click="notifyUnavailable">ISA</button><button @click="notifyUnavailable">외화예금</button><button @click="notifyUnavailable">보험</button><button @click="notifyUnavailable">신탁</button><button @click="notifyUnavailable">골드/실버</button></div></div>
+      <div class="menu-section inquiry-section"><h2><span class="round-icon"><Icon name="search" /></span> 조회</h2><button @click="notifyUnavailable">전체계좌조회</button><button @click="openHistory">통합거래내역조회</button><button @click="notifyUnavailable">패밀리뱅킹<small>부부 모임통장/노후자금, 우리아이 금융상품 관리</small></button><button @click="notifyUnavailable">휴면예금·보험금 찾기</button><button @click="notifyUnavailable">계좌관리<small>비밀번호 관리, 계좌통합관리서비스 등</small></button></div>
       <button class="menu-transfer" data-tutor-id="kb-menu-transfer" @click="startTransfer">➜ 이체/출금</button>
     </section>
 
@@ -82,32 +91,32 @@
       <KbHeader title="환경설정" @back="openMenu" @home="goHome" />
       <div class="settings-list">
         <p class="settings-label">앱 환경설정</p>
-        <button @click="notify('로그인 방법 설정은 화면 예시입니다.')"><strong>로그인 방법</strong><span class="blue-text">앱 열 때마다 로그인</span><Icon name="chevron-right" /></button>
-        <button @click="notify('현재 언어는 한국어입니다.')"><strong>언어(Language)</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>로그인 방법</strong><span class="blue-text">앱 열 때마다 로그인</span><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>언어(Language)</strong><Icon name="chevron-right" /></button>
         <button @click="toggleNotification"><strong>알림 설정</strong><span>{{ notificationEnabled ? '켜짐' : '꺼짐' }}</span><span class="switch" :class="{ 'is-on': notificationEnabled }"><i /></span></button>
         <button data-tutor-id="kb-easy-settings-link" @click="openEasySettings"><strong>간편모드/큰글씨 뱅킹 설정</strong><Icon name="chevron-right" /></button>
         <button @click="toggleDarkMode"><strong>다크모드</strong><small>눈의 피로감을 덜어주는 다크모드 설정</small><span class="switch" :class="{ 'is-on': darkMode }"><i /></span></button>
-        <button @click="notify('흔들기 기능은 브라우저 연습에서 지원하지 않아요.')"><strong>흔들기</strong><small>휴대폰을 흔들어 설정한 메뉴로 이동</small><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>흔들기</strong><small>휴대폰을 흔들어 설정한 메뉴로 이동</small><Icon name="chevron-right" /></button>
         <p class="settings-label">뱅킹 설정</p>
         <button @click="openDetailSettings"><strong>아이디조회/암호설정</strong><Icon name="chevron-right" /></button>
-        <button @click="notify('이 메뉴는 연습 화면에서 실행하지 않아요.')"><strong>인터넷뱅킹 이용제한해제</strong><Icon name="chevron-right" /></button>
-        <button @click="notify('안전을 위해 해지 기능은 실행하지 않아요.')"><strong>인터넷뱅킹 해지</strong><Icon name="chevron-right" /></button>
-        <button @click="notify('안전을 위해 탈퇴 기능은 실행하지 않아요.')"><strong>간편회원/조회용ID 탈퇴</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>인터넷뱅킹 이용제한해제</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>인터넷뱅킹 해지</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>간편회원/조회용ID 탈퇴</strong><Icon name="chevron-right" /></button>
       </div>
     </section>
 
     <section v-else-if="screen === 'settings-detail'" class="kb-page settings-page">
       <KbHeader title="환경설정" @back="openSettings" @home="goHome" />
       <div class="settings-list detail-list">
-        <button @click="notify('계좌번호 복사 이체 설정은 화면 예시입니다.')"><strong>계좌번호 복사 이체 설정</strong><small>복사 된 계좌번호를 이체 시 자동으로 불러오기</small><Icon name="chevron-right" /></button>
-        <button @click="notify('생체 이체 설정은 실제 기기에서만 사용할 수 있어요.')"><strong>생체 이체 설정</strong><small>간편비밀번호 대신 지문으로 편리하게 이체</small><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>계좌번호 복사 이체 설정</strong><small>복사 된 계좌번호를 이체 시 자동으로 불러오기</small><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>생체 이체 설정</strong><small>간편비밀번호 대신 지문으로 편리하게 이체</small><Icon name="chevron-right" /></button>
         <p class="settings-label">회원가입</p>
-        <button @click="notify('회원가입은 화면 예시입니다.')"><strong>KB스타뱅킹 회원가입</strong><Icon name="chevron-right" /></button>
-        <button @click="notify('회원가입은 화면 예시입니다.')"><strong>KB스타틴즈 회원가입</strong><Icon name="chevron-right" /></button>
-        <button @click="notify('회원가입은 화면 예시입니다.')"><strong>우리 아이 KB스타뱅킹 시작하기</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>KB스타뱅킹 회원가입</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>KB스타틴즈 회원가입</strong><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>우리 아이 KB스타뱅킹 시작하기</strong><Icon name="chevron-right" /></button>
         <p class="settings-label">앱 정보</p>
         <button @click="clearPracticeSettings"><strong>캐시/쿠키 삭제</strong><Icon name="chevron-right" /></button>
-        <button><strong>앱 버전</strong><span class="blue-text">G6.5.12</span><Icon name="chevron-right" /></button>
+        <button @click="notifyUnavailable"><strong>앱 버전</strong><span class="blue-text">G6.5.12</span><Icon name="chevron-right" /></button>
         <button data-tutor-id="kb-large-text-link" @click="openEasySettings"><strong>큰글씨 뱅킹 설정</strong><Icon name="chevron-right" /></button>
       </div>
     </section>
@@ -148,7 +157,7 @@
       </div>
       <template v-else>
         <div class="practice-account-hint"><Icon name="info" :size="18" /><span>연습용 계좌번호 <strong>94320200582932</strong></span><button data-tutor-id="kb-sample-account-button" @click="useSampleAccount">자동 입력</button></div>
-        <div class="transfer-shortcuts"><button @click="notify('촬영 이체는 이 연습에서 지원하지 않아요.')"><Icon name="camera" :size="18" /> 촬영이체</button><span>|</span><button @click="notify('연락처 이체는 이 연습에서 지원하지 않아요.')"><Icon name="users" :size="18" /> 연락처이체</button></div>
+        <div class="transfer-shortcuts"><button @click="notifyUnavailable"><Icon name="camera" :size="18" /> 촬영이체</button><span>|</span><button @click="notifyUnavailable"><Icon name="users" :size="18" /> 연락처이체</button></div>
         <div class="number-keypad account-keypad" data-tutor-id="kb-numeric-keypad">
           <button v-for="key in numberKeys" :key="key" @click="appendAccount(key)">{{ key }}</button>
           <button class="backspace" aria-label="한 자리 지우기" @click="deleteAccount"><Icon name="backspace" :size="26" /></button>
@@ -178,7 +187,7 @@
       <button class="source-account-bar" @click="openAccountPicker"><span>출금계좌 | </span>{{ selectedSourceAccount.bank }} {{ formatAccount(selectedSourceAccount.number) }} <Icon name="chevron-down" /></button>
       <div class="recipient-card">
         <button class="recipient-account-row" @click="openRecipientPicker"><strong>{{ recipientName }}</strong><span>{{ selectedRecipientBank }} {{ formatAccount(recipientAccount) }}</span><b>변경</b></button>
-        <button class="outline-pill multi-transfer" @click="notify('여러 건 이체는 다음 연습에서 제공할 예정이에요.')">여러 건 이체</button>
+        <button class="outline-pill multi-transfer" @click="notifyUnavailable">여러 건 이체</button>
         <strong class="recipient-amount">{{ amount.toLocaleString('ko-KR') }}원</strong>
         <small>출금가능금액 {{ availableBalance.toLocaleString('ko-KR') }}원</small>
       </div>
@@ -204,7 +213,7 @@
       <div class="done-visual"><Icon name="check-circle" :size="86" /></div>
       <h2>{{ recipientDisplayName }}님께<br />{{ amount.toLocaleString('ko-KR') }} 원<br /><span>이체가 완료되었습니다.</span></h2>
       <div class="done-account">{{ selectedRecipientBank }} {{ formatAccount(recipientAccount) }}</div>
-      <div class="done-links"><button @click="notify('메시지카드는 화면 예시입니다.')"><Icon name="receipt" /> 메시지카드</button><button @click="shareReceipt"><Icon name="share" /> 공유하기</button></div>
+      <div class="done-links"><button @click="notifyUnavailable"><Icon name="receipt" /> 메시지카드</button><button @click="shareReceipt"><Icon name="share" /> 공유하기</button></div>
       <button class="detail-link" @click="showDetail = !showDetail">이체 상세정보 <Icon name="chevron-down" /></button>
       <dl v-if="showDetail" class="transfer-detail"><div><dt>거래일시</dt><dd>{{ transactionTime }}</dd></div><div><dt>받는 분</dt><dd>{{ recipientDisplayName }}</dd></div><div><dt>출금계좌</dt><dd>{{ formatAccount(selectedSourceAccount.number) }}</dd></div><div><dt>수수료</dt><dd>0원</dd></div></dl>
       <div class="done-actions"><button @click="startTransfer">추가이체</button><button @click="openHistory">거래내역조회</button></div>
@@ -218,7 +227,7 @@
         <button @click="openAccountPicker">{{ formatAccount(selectedSourceAccount.number) }} <Icon name="chevron-down" /></button>
         <b>{{ availableBalance.toLocaleString('ko-KR') }}<small>원</small></b>
         <small>출금가능금액 {{ availableBalance.toLocaleString('ko-KR') }}원</small>
-        <div><button data-tutor-id="kb-history-transfer" @click="startTransfer">이체</button><button @click="notify('모으기는 화면 예시입니다.')">모으기</button><button @click="notify('ATM/창구출금은 화면 예시입니다.')">ATM/창구출금</button></div>
+        <div><button data-tutor-id="kb-history-transfer" @click="startTransfer">이체</button><button @click="notifyUnavailable">모으기</button><button @click="notifyUnavailable">ATM/창구출금</button></div>
       </div>
       <div class="history-filter"><Icon name="search" /><strong>3개월 · 전체 · 최신순</strong><span><Icon name="chevron-down" /><Icon name="menu" /></span></div>
       <div class="history-body"><div class="history-range">최근 3개월 <span>잔액표기 <button class="switch" :class="{ 'is-on': showHistoryBalance }" @click="showHistoryBalance = !showHistoryBalance"><span /></button></span></div><h3>{{ currentYearMonth }} <Icon name="chevron-down" /></h3>
@@ -229,9 +238,9 @@
     <div v-if="bankOverlay" class="modal-layer dim" @click.self="closeBankPicker">
       <section class="bank-sheet">
         <div class="sheet-header"><h2>은행/증권사</h2><button aria-label="닫기" @click="closeBankPicker"><Icon name="close" /></button></div>
-        <div class="bank-tabs"><button class="active">은행</button><button @click="notify('증권사 계좌는 이 연습에서 지원하지 않아요.')">증권사</button></div>
+        <div class="bank-tabs"><button class="active" @click="notifyUnavailable">은행</button><button @click="notifyUnavailable">증권사</button></div>
         <div class="bank-grid"><button v-for="bank in banks" :key="bank.name" @click="selectBank(bank)"><span class="bank-logo" :style="{ background: bank.color }">{{ bank.mark }}</span>{{ bank.name }}</button></div>
-        <h3>국세/지방세</h3><div class="bank-grid tax-grid"><button v-for="tax in taxes" :key="tax" @click="notify('세금 납부는 계좌이체 연습 대상이 아니에요.')"><span class="bank-logo tax"><Icon name="building" :size="19" /></span>{{ tax }}</button></div>
+        <h3>국세/지방세</h3><div class="bank-grid tax-grid"><button v-for="tax in taxes" :key="tax" @click="notifyUnavailable"><span class="bank-logo tax"><Icon name="building" :size="19" /></span>{{ tax }}</button></div>
       </section>
     </div>
 
@@ -249,12 +258,29 @@
         <p>{{ displayEditor === 'recipient' ? '받는 분 통장 표시 입력(10자)' : '내 통장 표시 입력(14자)' }}</p>
         <div class="display-input-wrap"><input v-if="displayEditor === 'recipient'" v-model="recipientDisplayName" maxlength="10" /><input v-else v-model="senderDisplayName" maxlength="14" /><button aria-label="입력 닫기" @click="displayEditor = null"><Icon name="close" :size="18" /></button></div>
         <p class="privacy-note"><Icon name="info" :size="17" /> 개인정보 입력에 유의해주세요.</p>
-        <h3>자주 쓰는 통장 표시 선택 <button @click="notify('표시 문구 편집은 화면 예시입니다.')">편집</button></h3>
-        <div class="display-chips"><button v-for="choice in (displayEditor === 'recipient' ? recipientDisplayChoices : senderDisplayChoices)" :key="choice" @click="selectDisplay(choice)">{{ choice }}</button><button class="plus-chip" aria-label="통장 표시 추가" @click="notify('위 입력란에 원하는 문구를 직접 입력해 주세요.')"><Icon name="plus" /></button></div>
+        <h3>자주 쓰는 통장 표시 선택 <button @click="notifyUnavailable">편집</button></h3>
+        <div class="display-chips"><button v-for="choice in (displayEditor === 'recipient' ? recipientDisplayChoices : senderDisplayChoices)" :key="choice" @click="selectDisplay(choice)">{{ choice }}</button><button class="plus-chip" aria-label="통장 표시 추가" @click="notifyUnavailable"><Icon name="plus" /></button></div>
         <button class="wide-yellow" @click="displayEditor = null">확인</button>
       </section>
     </div>
 
+    <div v-if="showSafetyConsent" class="modal-layer safety-consent-layer">
+      <section class="safety-consent" role="dialog" aria-modal="true" aria-labelledby="safety-consent-title">
+        <div class="safety-consent__icon"><Icon name="shield" :size="25" /></div>
+        <h2 id="safety-consent-title">안전하게 연습하기</h2>
+        <p>이용하기 전에 아래 내용을 확인해 주세요.</p>
+        <div class="safety-consent__notice">
+          <strong>안전 고지</strong>
+          <span>이 연습은 실제 계좌·송금과 무관합니다.</span>
+          <span>비밀번호와 OTP는 입력하지 않습니다.</span>
+        </div>
+        <label class="safety-consent__check">
+          <input v-model="safetyConsentChecked" type="checkbox" />
+          <span>위 내용을 확인했으며 이용에 동의합니다.</span>
+        </label>
+        <button class="wide-yellow" :disabled="!safetyConsentChecked" @click="acceptSafetyConsent">확인하고 시작하기</button>
+      </section>
+    </div>
     <div v-if="toastMessage" class="kb-toast" role="status">{{ toastMessage }}</div>
     <KbTutorAssistant :screen="screen" :error="tutorError" />
   </main>
@@ -272,7 +298,7 @@ type KbScreen = 'home' | 'menu' | 'settings' | 'settings-detail' | 'easy-setting
 type DisplayEditor = 'recipient' | 'sender' | null
 
 type BankOption = { name: string; mark: string; color: string }
-type AccountOption = { bank: string; number: string; balance: number }
+type AccountOption = { bank: string; number: string; balance: number; name?: string }
 type RecipientOption = { name: string; bank: string; number: string; mark: string; color: string }
 type Transaction = { date: string; name: string; amount: number; balance: number }
 
@@ -285,7 +311,7 @@ const darkMode = ref(localStorage.getItem('hangeoleum.kb.darkMode') === 'true')
 const notificationEnabled = ref(localStorage.getItem('hangeoleum.kb.notification') === 'true')
 const profileName = '김복자'
 const balance = ref(32515123)
-const primaryAccount: AccountOption = { bank: 'KB국민', number: '85560100126675', balance: 32515123 }
+const primaryAccount: AccountOption = { bank: 'KB국민', number: '85560100126675', balance: 32515123, name: '보통예금' }
 const selectedSourceAccount = ref<AccountOption>(primaryAccount)
 const recipientName = ref('이춘자')
 const recipientDisplayName = ref('이춘자')
@@ -303,6 +329,8 @@ const amountError = ref('')
 const tutorError = ref('')
 const toastMessage = ref('')
 const currentTime = ref('')
+const showSafetyConsent = ref(false)
+const safetyConsentChecked = ref(false)
 const showDetail = ref(false)
 const transactionTime = ref('')
 const showHistoryBalance = ref(true)
@@ -312,8 +340,11 @@ const numberKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 const amountKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '00', '0']
 const sourceAccounts: AccountOption[] = [
   primaryAccount,
-  { bank: 'KB국민', number: '12340101123456', balance: 1200000 },
+  { bank: 'KB국민', number: '12340101123456', balance: 1200000, name: '저축예금' },
 ]
+const homeAccountIndex = ref(0)
+const currentHomeAccount = computed(() => sourceAccounts[homeAccountIndex.value])
+const currentHomeAccountBalance = computed(() => currentHomeAccount.value.number === primaryAccount.number ? balance.value : currentHomeAccount.value.balance)
 const banks: BankOption[] = [
   { name: 'KB국민', mark: 'KB', color: '#66594b' }, { name: '기업', mark: 'IBK', color: '#214a9a' },
   { name: '농협', mark: 'NH', color: '#31b866' }, { name: '산업', mark: 'K', color: '#e9eef6' },
@@ -386,6 +417,11 @@ function toggleLargeText() { largeText.value = !largeText.value; localStorage.se
 function enableLargeText() { localStorage.setItem('hangeoleum.kb.largeText', String(largeText.value)); session.updateSettings({ textSize: largeText.value ? 'XLARGE' : 'BASIC' }); screen.value = 'home'; notify('보기 설정을 저장했어요.') }
 
 function startTransfer() {
+  startTransferFrom(selectedSourceAccount.value)
+}
+
+function startTransferFrom(account: AccountOption) {
+  selectedSourceAccount.value = account
   recipientAccount.value = ''
   selectedRecipientBank.value = ''
   recipientName.value = '이춘자'
@@ -396,6 +432,17 @@ function startTransfer() {
   showConfirm.value = false
   screen.value = 'transfer-start'
   closeOverlays()
+}
+function showPreviousAccount() {
+  if (homeAccountIndex.value > 0) homeAccountIndex.value -= 1
+}
+function showNextAccount() {
+  if (homeAccountIndex.value < sourceAccounts.length - 1) homeAccountIndex.value += 1
+}
+function acceptSafetyConsent() {
+  if (!safetyConsentChecked.value) return
+  localStorage.setItem('hangeoleum.safetyConsent', 'true')
+  showSafetyConsent.value = false
 }
 function appendAccount(key: string) { if (recipientAccount.value.length < 14) recipientAccount.value += key; accountError.value = ''; tutorError.value = '' }
 function setAccountInput(value: string) {
@@ -476,6 +523,7 @@ function amountToKorean(value: number) {
   return `${result.trim()}원`
 }
 function notify(message: string) { toastMessage.value = message; if (toastTimer) window.clearTimeout(toastTimer); toastTimer = window.setTimeout(() => { toastMessage.value = '' }, 2600) }
+function notifyUnavailable() { notify('해당 실습에는 사용되지 않는 버튼이에요.') }
 async function copyAccount(value: string) { try { await navigator.clipboard.writeText(value); notify('계좌번호를 복사했어요.') } catch { notify(`계좌번호는 ${formatAccount(value)}예요.`) } }
 async function shareReceipt() { const text = `${recipientDisplayName.value}님께 ${amount.value.toLocaleString('ko-KR')}원 이체 연습 완료`; try { if (navigator.share) await navigator.share({ title: '이체 연습 결과', text }); else await navigator.clipboard.writeText(text); notify('이체 연습 결과를 공유했어요.') } catch { notify('공유를 취소했어요.') } }
 function clearPracticeSettings() {
@@ -516,6 +564,73 @@ function clearPracticeSettings() {
 .done-page { text-align:center; padding-bottom:30px; }.done-visual { display:flex; align-items:center; justify-content:center; gap:12px; padding-top:55px; }.done-visual span { color:#77b54a; font-size:4em; }.done-visual b { display:grid; place-items:center; width:65px; height:65px; border-radius:50%; background:#ffc400; color:#fff; font-size:2.2em; }.done-page h2 { font-size:1.7em; line-height:1.35; margin:35px 0 28px; }.done-page h2 span { font-weight:400; }.done-account { width:max-content; max-width:90%; margin:0 auto; border:1px solid #d8dde1; border-radius:24px; padding:11px 22px; color:#606973; }.done-links { display:flex; justify-content:center; gap:22px; margin:35px 0 30px; }.done-links button { font-size:1.1em; }.detail-link { border-top:1px solid #e6e8ea; padding:24px; text-align:right; color:#858d95; }.done-actions { display:flex; gap:10px; padding:0 28px 40px; }.done-actions button { flex:1; min-height:54px; border:1px solid #9da5ad; }
 .history-page { background:#fff; }.history-account { padding:24px 28px 26px; }.history-account p { margin:0 0 9px; color:#59616a; font-size:1.05em; }.history-account>button { display:block; font-size:1.5em; font-weight:700; }.history-account>button span { color:#6e7780; }.history-account>b { display:block; margin:76px 0 0; text-align:right; font-size:2.8em; }.history-account>b small { font-size:.45em; font-weight:400; }.history-account>small { display:block; text-align:right; color:#68717b; }.history-account>div { display:flex; gap:12px; margin-top:36px; }.history-account>div button { flex:1; min-height:56px; background:#e9edf0; font-size:1.05em; }.history-filter { display:flex; align-items:center; justify-content:space-between; padding:19px 28px; background:#f6f7f8; border-top:1px solid #dfe3e6; border-bottom:1px solid #dfe3e6; }.history-filter>span:first-child { font-size:2em; color:#646d76; }.history-filter strong { font-size:1.02em; }.history-body { padding:25px 28px; }.history-range { padding:0 0 22px; border-bottom:3px solid #747c84; }.history-range>span { float:right; display:flex; align-items:center; gap:6px; }.history-range .switch { transform:scale(.8); }.history-body h3 { margin:24px 0 14px; padding-bottom:22px; border-bottom:1px solid #e4e7e9; }.history-body h3 span { float:right; }.transaction-item { position:relative; min-height:116px; padding:18px 0; border-bottom:1px solid #e4e7e9; }.transaction-item p { margin:0 0 16px; color:#737c85; }.transaction-item p i { margin:0 10px; color:#c1c5c9; }.transaction-item>strong { font-size:1.2em; }.transaction-item>b { position:absolute; right:0; top:82px; font-size:1.2em; }.transaction-item>b.negative { color:#25282c; }.transaction-item>b small { display:block; margin-top:6px; color:#777f87; font-size:.75em; font-weight:400; }
 .transfer-progress{display:flex;padding:12px 22px;background:#f5f6f8}.transfer-progress span{position:relative;flex:1;color:#8a9199;text-align:center;font-size:.78em}.transfer-progress span+span:before{content:'';position:absolute;left:-12px;top:50%;width:24px;height:1px;background:#ccd1d6}.transfer-progress .active{color:#5a4e3e;font-weight:800}.transfer-progress .done{color:#25785c}.recent-area{padding:18px 26px 90px}.recent-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.recent-heading button{color:#536a96;text-decoration:underline}.recent-recipient{display:flex;align-items:center;gap:13px;width:100%;padding:16px 0;border-bottom:1px solid #e3e6e9;text-align:left}.recent-recipient>span:nth-child(2),.recipient-summary>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:5px}.recent-recipient small,.recipient-summary small{color:#69717a}.practice-account-hint{display:flex;align-items:center;gap:8px;margin:18px 26px 0;padding:12px 14px;border:1px solid #f0d16f;border-radius:12px;background:#fff8dc;font-size:.86em}.practice-account-hint span{flex:1}.practice-account-hint button{color:#22468c;font-weight:800;text-decoration:underline}.transfer-shortcuts button{display:flex;align-items:center;gap:5px}.field-error{display:flex;align-items:center;gap:6px;margin:10px 28px;color:#c83a36;font-size:.9em}.recipient-summary{display:flex;align-items:center;gap:12px;margin:24px 28px 42px;padding:14px;border:1px solid #e0e4e8;border-radius:14px;text-align:left}.recipient-summary button{color:#596f9c;text-decoration:underline}.korean-amount{min-height:22px;margin:7px 0;color:#6b727a}.quick-amounts{flex-wrap:wrap}.quick-amounts .reset-amount{flex-basis:100%;border:0;color:#606a74;text-decoration:underline}.transfer-limit{display:grid;grid-template-columns:1fr auto;gap:8px;margin:10px 28px 14px;padding:13px 0;border-top:1px solid #e2e5e8;color:#666e76;font-size:.84em}.transfer-limit strong{color:#2b2e33}.safety-check{display:flex;gap:12px;margin:16px 28px;padding:14px;border-radius:12px;background:#eef6f3;color:#28644f;text-align:left}.safety-check span{display:flex;flex-direction:column;gap:4px}.safety-check small{line-height:1.4}.done-links button{display:flex;align-items:center;gap:6px}.detail-link{display:flex;align-items:center;justify-content:flex-end;gap:5px;width:100%;border:0;border-top:1px solid #e6e8ea;background:transparent}.transfer-detail{margin:0 28px 26px;padding:14px;border-radius:12px;background:#f5f6f7;text-align:left}.transfer-detail div{display:flex;justify-content:space-between;padding:7px 0}.transfer-detail dt{color:#6d747c}.transfer-detail dd{margin:0;font-weight:700}.kb-toast{position:fixed;left:50%;bottom:86px;z-index:70;transform:translateX(-50%);width:min(410px,calc(100% - 36px));padding:13px 16px;border-radius:12px;background:#24262bee;color:#fff;text-align:center}.modal-layer{justify-items:center}.bank-sheet,.choice-sheet,.display-sheet,.confirm-modal{width:min(100%,480px)}.dark-mode,.dark-mode .kb-page,.dark-mode .menu-page,.dark-mode .settings-page,.dark-mode .easy-page,.dark-mode .transfer-page,.dark-mode .history-page{background:#17191d;color:#f4f5f6}.dark-mode .status-bar,.dark-mode .account-card,.dark-mode .home-service-card,.dark-mode .ars-card,.dark-mode .bottom-nav,.dark-mode .bank-sheet,.dark-mode .choice-sheet,.dark-mode .display-sheet,.dark-mode .confirm-modal{background:#25282e;color:#f4f5f6}.dark-mode .source-account-bar,.dark-mode .transfer-progress,.dark-mode .transfer-detail,.dark-mode .history-filter{background:#30343a}.dark-mode .settings-list>button,.dark-mode .recent-recipient,.dark-mode .choice-row{border-color:#454a52}.dark-mode .practice-account-hint{background:#40391e;color:#fff5c2}.dark-mode .account-input-line,.dark-mode .bank-select-line,.dark-mode .settings-label{color:#f4f5f6}.dark-mode .display-input-wrap input{color:#fff}
+.account-card { position: relative; }
+.account-switch-controls { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.account-switch {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d6dce1;
+  border-radius: 50%;
+  background: #fff;
+  color: #46515c;
+  transform: translateY(-50%);
+  pointer-events: auto;
+}
+.account-switch:disabled { color: #c5cbd0; opacity: .65; }
+.account-switch--prev { left: 8px; }
+.account-switch--next { right: 8px; }
+.account-switch__position {
+  position: absolute;
+  right: 50%;
+  bottom: 8px;
+  color: #7a838c;
+  font-size: .78em;
+  transform: translateX(50%);
+}
+.safety-consent-layer { z-index: 100; padding: 18px; background: rgba(17, 27, 39, .52); }
+.safety-consent {
+  width: min(100%, 390px);
+  padding: 26px 22px 20px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 16px 45px rgba(17, 27, 39, .26);
+}
+.safety-consent__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: #eaf1ff;
+  color: var(--color-primary);
+}
+.safety-consent h2 { margin: 0; color: #172b4d; font-size: 1.4em; }
+.safety-consent > p { margin: 8px 0 16px; color: #5f6b76; line-height: 1.5; }
+.safety-consent__notice {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 15px;
+  border: 1px solid #f0d16f;
+  border-radius: 12px;
+  background: #fff8dc;
+  color: #4b4b42;
+  line-height: 1.45;
+}
+.safety-consent__notice strong { color: #8a6500; }
+.safety-consent__check { display: flex; align-items: flex-start; gap: 9px; margin: 18px 0; color: #23384d; line-height: 1.45; }
+.safety-consent__check input { width: 20px; height: 20px; flex: none; accent-color: var(--color-primary); }
+.safety-consent .wide-yellow { width: 100%; }
+.safety-consent .wide-yellow:disabled { background: #dfe3e6; color: #8b939a; }
+.dark-mode .safety-consent { background: #25282e; color: #f4f5f6; }
+.dark-mode .safety-consent h2,.dark-mode .safety-consent__check { color: #f4f5f6; }
+
 @media (max-width:380px) { .home-links{gap:8px}.account-card{margin-left:14px;margin-right:14px}.home-service-card,.ars-card{margin-left:14px;margin-right:14px}.product-grid{gap:5px}.product-grid button{font-size:.8em}.bank-grid{padding-left:20px;padding-right:20px}.bank-grid button{font-size:.95em}.source-account-bar,.account-input-line,.bank-select-line{font-size:1.15em} }
 .account-input-line-wrap { display:flex; align-items:center; width:calc(100% - 56px); margin:0 28px; border-bottom:3px solid #b6a479; }
 .account-input-editable { min-width:0; flex:1; padding:22px 5px; border:0; outline:0; background:transparent; font:inherit; font-size:1.45em; color:#92969a; font-weight:700; }

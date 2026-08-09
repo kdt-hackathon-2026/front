@@ -3,6 +3,7 @@ import { BANKS } from '@/assets/data/banks'
 import type { Bank, BankCode, HelpLevel, PracticeMission, StepCode, UserSettings } from '@/types'
 
 const STORAGE_KEY = 'hangeoleum.settings.v2'
+const INTRO_FLOW_VERSION = 'start-consent-v1'
 
 export type PracticeMode = 'together' | 'practice' | null
 
@@ -73,6 +74,8 @@ interface SessionState {
   settings: UserSettings
   onboardingDone: boolean
   introVideoSeen: boolean
+  introMotionVisible: boolean
+  introMotionResolved: boolean
   pendingBankCode: BankCode | null // '계좌이체 연습' 진입 시 먼저 고른 은행 (연습 시작 전, flow가 만들어지기 전 단계)
   flow: FlowState
   lastResult: LastResult | null
@@ -100,6 +103,8 @@ export const useSessionStore = defineStore('session', {
     },
     onboardingDone: false,
     introVideoSeen: false,
+    introMotionVisible: false,
+    introMotionResolved: false,
     pendingBankCode: null,
 
     // ---- 진행 중 실습 세션 (together=함께해보기 / practice=스스로해보기) ----
@@ -147,6 +152,10 @@ export const useSessionStore = defineStore('session', {
       this.introVideoSeen = true
       this.persistToLocalStorage()
     },
+    setIntroMotionState(visible: boolean) {
+      this.introMotionVisible = visible
+      this.introMotionResolved = true
+    },
     persistToLocalStorage() {
       try {
         localStorage.setItem(
@@ -154,7 +163,8 @@ export const useSessionStore = defineStore('session', {
           JSON.stringify({
             settings: this.settings,
             onboardingDone: this.onboardingDone,
-            introVideoSeen: this.introVideoSeen
+            introVideoSeen: this.introVideoSeen,
+            introFlowVersion: INTRO_FLOW_VERSION
           })
         )
       } catch {
@@ -169,10 +179,11 @@ export const useSessionStore = defineStore('session', {
           settings?: Partial<UserSettings>
           onboardingDone?: boolean
           introVideoSeen?: boolean
+          introFlowVersion?: string
         }
         if (saved.settings) this.settings = { ...this.settings, ...saved.settings }
         if (saved.onboardingDone) this.onboardingDone = saved.onboardingDone
-        if (saved.introVideoSeen) this.introVideoSeen = saved.introVideoSeen
+        if (saved.introFlowVersion === INTRO_FLOW_VERSION && saved.introVideoSeen) this.introVideoSeen = true
       } catch {
         /* 손상된 값 무시 */
       }

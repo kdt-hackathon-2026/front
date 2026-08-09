@@ -17,7 +17,27 @@
       <span v-for="i in lines.length" :key="i" class="dot" :class="{ 'is-active': i - 1 === lineIndex }" />
     </div>
 
-    <AppButton @click="$emit('done')">시작할게요</AppButton>
+    <AppButton @click="openConsent">시작할게요</AppButton>
+
+    <div v-if="showConsent" class="intro-consent-modal" role="presentation" @click.self="showConsent = false">
+      <section class="intro-consent" role="dialog" aria-modal="true" aria-labelledby="intro-consent-title">
+        <h2 id="intro-consent-title">이용 전 안전 안내</h2>
+        <p>안전한 가상 연습을 위해 아래 내용을 확인해 주세요.</p>
+        <div class="intro-consent__notice">
+          <strong>꼭 확인해 주세요</strong>
+          <span>이 연습은 실제 계좌·송금과 관계없는 가상 연습입니다.</span>
+          <span>비밀번호, OTP, 인증번호를 입력하지 않습니다.</span>
+        </div>
+        <label class="intro-consent__check">
+          <input v-model="consentChecked" type="checkbox" />
+          <span>위 내용을 확인했으며 이용에 동의합니다.</span>
+        </label>
+        <div class="intro-consent__actions">
+          <button type="button" @click="showConsent = false">취소</button>
+          <AppButton :disabled="!consentChecked" @click="confirmConsent">동의하고 시작하기</AppButton>
+        </div>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -26,7 +46,22 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import MascotCharacter from './MascotCharacter.vue'
 import AppButton from './AppButton.vue'
 
-defineEmits<{ done: [] }>()
+const emit = defineEmits<{ done: [] }>()
+
+const showConsent = ref(false)
+const consentChecked = ref(false)
+
+function openConsent() {
+  consentChecked.value = false
+  showConsent.value = true
+}
+
+function confirmConsent() {
+  if (!consentChecked.value) return
+  localStorage.setItem('hangeoleum.safetyConsent', 'true')
+  showConsent.value = false
+  emit('done')
+}
 
 const lines = [
   '실제 앱과 비슷한 화면으로 계좌이체를 연습해요.',
@@ -140,6 +175,79 @@ onBeforeUnmount(() => {
 }
 .dot.is-active {
   background: var(--color-primary);
+}
+.intro-consent-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(17, 27, 39, .52);
+}
+.intro-consent {
+  width: min(100%, 420px);
+  padding: 24px 20px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  text-align: left;
+  box-shadow: 0 12px 32px rgba(18, 35, 55, .22);
+}
+.intro-consent h2 {
+  margin: 0;
+  color: var(--color-primary-dark);
+  font-size: var(--fs-title);
+}
+.intro-consent > p {
+  margin: 8px 0 16px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+.intro-consent__notice {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px;
+  border: 1px solid var(--color-tip-border);
+  border-radius: var(--radius-md);
+  background: var(--color-tip-bg);
+  color: var(--color-tip-text);
+  line-height: 1.45;
+}
+.intro-consent__notice strong {
+  margin-bottom: 2px;
+}
+.intro-consent__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 18px 0;
+  color: var(--color-text);
+  font-weight: 700;
+  line-height: 1.45;
+}
+.intro-consent__check input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  accent-color: var(--color-primary);
+}
+.intro-consent__actions {
+  display: grid;
+  grid-template-columns: 1fr 1.7fr;
+  gap: 10px;
+}
+.intro-consent__actions > button {
+  min-height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  cursor: pointer;
+}
+.intro-consent__actions :deep(.app-button) {
+  width: 100%;
 }
 @media (prefers-reduced-motion: reduce) {
   .intro-motion__mascot,

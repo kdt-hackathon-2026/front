@@ -2,11 +2,10 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-// Spring Legacy(WAR) 프로젝트에 정적 빌드 산출물을 그대로 복사해 넣는 방식을 가정합니다.
-// 예) 빌드 후 dist/ 전체를 /src/main/webapp/hangeoleum/ 로 복사하고
-//     서버 컨텍스트가 /hangeoleum/ 아래에서 서비스한다면 BASE_PATH=/hangeoleum/ 로 빌드하세요.
-//     예: VITE_BASE_PATH=/hangeoleum/ npm run build
-const BASE_PATH = process.env.VITE_BASE_PATH || '/hangeoleum/'
+// GitHub Pages 프로젝트 사이트 주소:
+// https://kdt-hackathon-2026.github.io/front/
+// 다른 경로가 필요한 환경에서는 VITE_BASE_PATH로 덮어쓸 수 있습니다.
+const BASE_PATH = process.env.VITE_BASE_PATH || '/front/'
 
 export default defineConfig({
   base: BASE_PATH,

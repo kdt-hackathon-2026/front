@@ -26,8 +26,11 @@ const store = useSessionStore()
 const tutor = useTutorStore()
 const route = useRoute()
 
+store.restoreFromLocalStorage()
+
 const isMessages = computed(() => route.name === 'messages')
-const showAiFab = computed(() => route.name !== 'ai-tutor' && !isMessages.value)
+const isIntroMotion = computed(() => route.name === 'home' && (!store.introMotionResolved || store.introMotionVisible))
+const showAiFab = computed(() => route.name !== 'ai-tutor' && !isMessages.value && !isIntroMotion.value)
 const isKbTransfer = computed(() => route.name === 'kb-transfer')
 
 function guidedScreenForRoute(): ScreenCode | null {

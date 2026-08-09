@@ -84,11 +84,13 @@ onMounted(async () => {
   const home = await fetchHome()
   resumePractice.value = home.resumePractice
   // 처음 방문이거나, 아직 소개 모션을 안 본 경우에만 보여줍니다.
-  showIntro.value = home.isFirstVisit || !store.introVideoSeen
+  showIntro.value = !store.introVideoSeen
+  store.setIntroMotionState(showIntro.value)
 })
 
 function dismissIntro() {
   showIntro.value = false
+  store.setIntroMotionState(false)
   store.markIntroVideoSeen()
 }
 
