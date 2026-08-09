@@ -13,10 +13,10 @@
   --bank-header-bg: var(--color-surface);
   --bank-header-text: var(--color-text);
 
-  /* Mascot / AI tutor tip card (warm coral) */
-  --color-mascot-bg: #fdecec;
-  --color-mascot-border: #f0b8b8;
-  --color-mascot-text: #c0392b;
+  /* Mascot / AI tutor tip card (calm blue) */
+  --color-mascot-bg: #eef5ff;
+  --color-mascot-border: #b9cff2;
+  --color-mascot-text: #28518f;
 
   /* Tip / caution (yellow) */
   --color-tip-bg: #fff6d9;

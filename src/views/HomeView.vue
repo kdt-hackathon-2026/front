@@ -1,92 +1,113 @@
 <template>
   <div class="home">
-    <AppHeader title="금융한걸음" :badge="'가상 연습'" />
+    <AppHeader title="금융한걸음" badge="가상 연습" />
 
     <div class="screen">
-      <h2 class="screen-title">무엇을 연습할까요?</h2>
-      <p class="screen-subtitle">필요한 기능만 크게 보여드려요.</p>
+      <IntroMotion v-if="showIntro" @done="dismissIntro" />
 
-      <button class="hero-card" @click="goTogetherOrPractice">
-        <span class="hero-card__icon" aria-hidden="true">⇄</span>
-        <span class="hero-card__text">
-          <strong>계좌이체 연습</strong>
-          <small>천천히 6단계로 연습</small>
-        </span>
-      </button>
+      <template v-else>
+        <h2 class="screen-title">무엇을 연습할까요?</h2>
+        <p class="screen-subtitle">필요한 기능만 크게 보여드려요.</p>
 
-      <button class="hero-card hero-card--secondary" @click="goAiTutor">
-        <span class="hero-card__icon" aria-hidden="true">◎</span>
-        <span class="hero-card__text">
-          <strong>AI 튜터</strong>
-          <small>말로 물어보기</small>
-        </span>
-      </button>
+        <button class="hero-card" data-tutor-id="transfer-practice-button" @click="goTransferPractice">
+          <span class="hero-card__icon" aria-hidden="true"><Icon name="transfer" :size="28" /></span>
+          <span class="hero-card__text">
+            <strong>계좌이체 연습</strong>
+            <small>천천히 5단계로 연습</small>
+          </span>
+        </button>
 
-      <button class="list-card" @click="goStartMethod">
-        <span>처음 배우기</span>
-        <span aria-hidden="true">⟳</span>
-      </button>
+        <div class="status-strip">
+          <span>주거래 은행 <strong>{{ store.selectedBank.bankName }}</strong></span>
+          <span>도움 수준 <strong>{{ helpLevelLabel }}</strong></span>
+          <button class="status-strip__link" @click="router.push('/onboarding/bank')">변경</button>
+        </div>
 
-      <div class="status-strip">
-        <span>주거래 은행 <strong>{{ store.selectedBank.name }}</strong></span>
-        <span>도움 수준 <strong>{{ helpLevelLabel }}</strong></span>
-        <button class="status-strip__link" @click="router.push('/onboarding/bank')">변경</button>
-      </div>
+        <button v-if="store.onboardingDone" class="link-line" @click="router.push('/together')">
+          처음 배우기(AI와 함께) 다시 해보기
+        </button>
 
-      <TipBox tone="yellow" icon="ℹ️">
-        가상 연습입니다. 실제 돈은 이용하지 않아요.
-      </TipBox>
+        <TipBox tone="yellow">가상 연습입니다. 실제 돈은 이용하지 않아요.</TipBox>
 
-      <div v-if="hasResumableSession" class="resume-card">
-        <p class="resume-card__title">이어서 연습할까요?</p>
-        <p class="resume-card__desc">{{ store.selectedBank.name }} · {{ store.flow.step }}단계에서 멈췄어요.</p>
-        <AppButton variant="outline" @click="resume">이어하기</AppButton>
-      </div>
+        <button class="analysis-note-button" @click="router.push('/analysis')">
+          <span class="analysis-note-button__icon" aria-hidden="true"><Icon name="sparkle" :size="20" /></span>
+          <span>
+            <strong>AI 분석노트</strong>
+            <small>실습 결과와 부족한 부분 확인하기</small>
+          </span>
+          <Icon name="chevron-right" :size="18" />
+        </button>
+
+        <div v-if="resumePractice" class="resume-card">
+          <p class="resume-card__title">이어서 연습할까요?</p>
+          <p class="resume-card__desc">{{ resumePractice.scenarioTitle }} · 진행률 {{ resumePractice.progressRate }}%</p>
+          <AppButton variant="outline" @click="resume">이어하기</AppButton>
+        </div>
+      </template>
     </div>
 
     <BottomNav v-model="activeTab" />
   </div>
 </template>
 
-<script setup>
-import { computed, ref } from 'vue'
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
 import BottomNav from '@/components/common/BottomNav.vue'
 import AppButton from '@/components/common/AppButton.vue'
 import TipBox from '@/components/common/TipBox.vue'
+import Icon from '@/components/common/icons/Icon.vue'
+import IntroMotion from '@/components/common/IntroMotion.vue'
 import { useSessionStore } from '@/stores/session'
+import { useTutorStore } from '@/stores/tutor'
+import { fetchHome } from '@/api/homeApi'
+import { stepIndexForCode } from '@/router/screenMap'
+import type { HelpLevel, ResumePractice } from '@/types'
 
 const router = useRouter()
 const store = useSessionStore()
+const tutor = useTutorStore()
 const activeTab = ref('home')
 
-const helpLevelLabel = computed(() => {
-  const map = { first: '처음 연습', guided: '도움 받으며', solo: '혼자 연습' }
-  return map[store.settings.helpLevel] || '도움 받으며'
+const showIntro = ref(false)
+const resumePractice = ref<ResumePractice | null>(null)
+
+const HELP_LEVEL_LABEL: Record<HelpLevel, string> = {
+  BEGINNER: '처음 연습',
+  NORMAL: '도움 받으며',
+  ADVANCED: '혼자 연습'
+}
+const helpLevelLabel = computed(() => HELP_LEVEL_LABEL[store.settings.helpLevel] || '도움 받으며')
+
+onMounted(async () => {
+  const home = await fetchHome()
+  resumePractice.value = home.resumePractice
+  // 처음 방문이거나, 아직 소개 모션을 안 본 경우에만 보여줍니다.
+  showIntro.value = !store.introVideoSeen
+  store.setIntroMotionState(showIntro.value)
 })
 
-const hasResumableSession = computed(
-  () => !!store.flow.mode && store.flow.step > 0 && store.flow.step < 6 && !store.flow.completedAt
-)
+function dismissIntro() {
+  showIntro.value = false
+  store.setIntroMotionState(false)
+  store.markIntroVideoSeen()
+}
 
-function goStartMethod() {
-  router.push('/onboarding/start')
-}
-function goAiTutor() {
-  router.push('/ai-tutor')
-}
-function goTogetherOrPractice() {
-  // 처음 사용자는 함께 해보기로, 온보딩을 마친 사용자는 스스로 해보기로 안내
-  if (!store.settings.onboardingDone) {
-    router.push('/together')
-  } else {
-    router.push('/practice')
+function goTransferPractice() {
+  if (tutor.walkthroughStep === 'home-transfer') {
+    tutor.setWalkthroughStep('done')
+    tutor.close()
   }
+  // 온보딩을 마치지 않았으면 온보딩(소개→접근성→은행)부터, 마쳤으면 스스로 해보기로 안내
+  router.push(store.onboardingDone ? '/practice' : '/onboarding/intro')
 }
 function resume() {
-  const base = store.flow.mode === 'together' ? '/together/step/' : '/practice/step/'
-  router.push(base + store.flow.step)
+  if (!resumePractice.value) return
+  const { practiceId, bankCode, currentStep } = resumePractice.value
+  // 서버 응답에 진행 모드(함께/스스로) 구분이 없어, 이어하기는 '스스로 해보기' 흐름으로 재개합니다.
+  store.resumeFlow('practice', practiceId, bankCode, currentStep)
+  router.push(`/practice/step/${stepIndexForCode(currentStep)}`)
 }
 </script>
 
@@ -104,18 +125,13 @@ function resume() {
   border-radius: var(--radius-lg);
   border: 2px solid var(--color-primary);
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary, #fff);
   padding: 18px 20px;
   cursor: pointer;
   text-align: left;
 }
-.hero-card--secondary {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border-color: var(--color-border);
-}
 .hero-card__icon {
-  font-size: 30px;
+  display: flex;
 }
 .hero-card__text {
   display: flex;
@@ -123,31 +139,28 @@ function resume() {
   gap: 2px;
 }
 .hero-card__text strong {
-  font-size: var(--fs-title);
+  font-size: 22px;
 }
 .hero-card__text small {
-  font-size: var(--fs-caption);
+  font-size: 16px;
   opacity: 0.85;
 }
-.list-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: var(--tap-min);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 14px 18px;
-  font-size: var(--fs-body-lg);
-  font-weight: 700;
-  cursor: pointer;
+.screen-title {
+  color: #102a43;
+  font-size: 30px;
+  line-height: 1.35;
+}
+.screen-subtitle {
+  color: #334e68;
+  font-size: 18px;
+  line-height: 1.55;
 }
 .status-strip {
   display: flex;
   align-items: center;
   gap: 14px;
-  font-size: var(--fs-caption);
-  color: var(--color-text-secondary);
+  font-size: 16px;
+  color: #334e68;
   flex-wrap: wrap;
 }
 .status-strip strong {
@@ -158,8 +171,20 @@ function resume() {
   border: none;
   background: none;
   color: var(--color-primary);
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+}
+.link-line {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 16px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
 }
 .resume-card {
   background: var(--color-surface);
@@ -170,6 +195,49 @@ function resume() {
   flex-direction: column;
   gap: 8px;
 }
+.analysis-note-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  min-height: 88px;
+  margin-top: 14px;
+  gap: 14px;
+  padding: 20px 18px;
+  border: 2px solid #2a56a3;
+  border-radius: var(--radius-md);
+  background: #f1f6ff;
+  color: #102a43;
+  box-shadow: 0 0 0 3px #dbe8ff, 0 6px 14px rgba(42, 86, 163, .18);
+  text-align: left;
+  cursor: pointer;
+}
+.analysis-note-button__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  background: #d7e7ff;
+  color: #174a8b;
+}
+.analysis-note-button > span:nth-child(2) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+.analysis-note-button strong {
+  color: #102a43;
+  font-size: 22px;
+}
+.analysis-note-button small {
+  color: #334e68;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.home :deep(.tip-box) { font-size: 17px; line-height: 1.55; }
 .resume-card__title {
   margin: 0;
   font-weight: 800;

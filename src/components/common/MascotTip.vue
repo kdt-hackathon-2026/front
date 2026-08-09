@@ -1,18 +1,28 @@
 <template>
   <div class="mascot-tip">
-    <span class="mascot-tip__avatar" aria-hidden="true">🐥</span>
+    <MascotCharacter :size="32" class="mascot-tip__avatar" />
     <div class="mascot-tip__body">
       <p class="mascot-tip__text"><slot /></p>
-      <button v-if="expandable" class="mascot-tip__more" @click="$emit('more')">더 듣기 ›</button>
+      <button v-if="expandable" class="mascot-tip__more" @click="$emit('more')">
+        더 듣기 <Icon name="chevron-right" :size="12" />
+      </button>
     </div>
   </div>
 </template>
 
-<script setup>
-defineProps({
-  expandable: { type: Boolean, default: false }
-})
-defineEmits(['more'])
+<script setup lang="ts">
+import Icon from './icons/Icon.vue'
+import MascotCharacter from './MascotCharacter.vue'
+
+withDefaults(
+  defineProps<{
+    expandable?: boolean
+  }>(),
+  {
+    expandable: false
+  }
+)
+defineEmits<{ more: [] }>()
 </script>
 
 <style scoped>
@@ -25,7 +35,6 @@ defineEmits(['more'])
   padding: 14px;
 }
 .mascot-tip__avatar {
-  font-size: 26px;
   flex-shrink: 0;
 }
 .mascot-tip__body {
@@ -47,5 +56,8 @@ defineEmits(['more'])
   color: var(--color-mascot-text);
   text-decoration: underline;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 </style>

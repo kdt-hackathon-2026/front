@@ -5,19 +5,30 @@
     :disabled="disabled"
     @click="$emit('click', $event)"
   >
-    <span v-if="icon" class="app-btn__icon" aria-hidden="true">{{ icon }}</span>
+    <span v-if="icon" class="app-btn__icon" aria-hidden="true"><Icon :name="icon" :size="18" /></span>
     <span class="app-btn__label"><slot /></span>
   </button>
 </template>
 
-<script setup>
-defineProps({
-  variant: { type: String, default: 'primary' }, // primary | secondary | ghost | outline
-  block: { type: Boolean, default: true },
-  disabled: { type: Boolean, default: false },
-  icon: { type: String, default: '' }
-})
-defineEmits(['click'])
+<script setup lang="ts">
+import Icon from './icons/Icon.vue'
+import type { IconName } from './icons/registry'
+
+withDefaults(
+  defineProps<{
+    variant?: 'primary' | 'secondary' | 'ghost' | 'outline'
+    block?: boolean
+    disabled?: boolean
+    icon?: IconName | string
+  }>(),
+  {
+    variant: 'primary',
+    block: true,
+    disabled: false,
+    icon: ''
+  }
+)
+defineEmits<{ click: [event: MouseEvent] }>()
 </script>
 
 <style scoped>
@@ -67,7 +78,8 @@ defineEmits(['click'])
   cursor: not-allowed;
 }
 .app-btn__icon {
-  font-size: 1.15em;
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
 }
 </style>

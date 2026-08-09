@@ -1,15 +1,32 @@
 <template>
   <div class="tip-box" :class="`tip-box--${tone}`">
-    <span class="tip-box__icon" aria-hidden="true">{{ icon }}</span>
+    <span class="tip-box__icon" aria-hidden="true"><Icon :name="resolvedIcon" :size="16" /></span>
     <p class="tip-box__text"><slot /></p>
   </div>
 </template>
 
-<script setup>
-defineProps({
-  tone: { type: String, default: 'yellow' }, // yellow | success | danger
-  icon: { type: String, default: '💡' }
-})
+<script setup lang="ts">
+import { computed } from 'vue'
+import Icon from './icons/Icon.vue'
+import type { IconName } from './icons/registry'
+
+const props = withDefaults(
+  defineProps<{
+    tone?: 'yellow' | 'success' | 'danger'
+    icon?: IconName | string
+  }>(),
+  {
+    tone: 'yellow',
+    icon: ''
+  }
+)
+
+const TONE_DEFAULT_ICON: Record<string, IconName> = {
+  yellow: 'info',
+  success: 'check-circle',
+  danger: 'alert-triangle'
+}
+const resolvedIcon = computed(() => props.icon || TONE_DEFAULT_ICON[props.tone] || 'info')
 </script>
 
 <style scoped>

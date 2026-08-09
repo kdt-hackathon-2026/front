@@ -7,14 +7,20 @@
       </div>
 
       <div class="voice-modal__hint mascot-tip-like">
-        <span aria-hidden="true">🐥</span>
-        <p>천천히 말씀하셔도 기다릴게요.<br />예: "가은행 김민지 십만 원"</p>
+        <MascotCharacter :size="28" />
+        <p>천천히 말씀하셔도 기다릴게요.<br />예: "KB국민은행 김하나 오만 원"</p>
       </div>
 
-      <div class="voice-modal__mic" :class="{ 'is-listening': isListening }">
-        <span class="voice-modal__mic-icon" aria-hidden="true">🎤</span>
-      </div>
-      <p class="voice-modal__status">{{ statusText }}</p>
+      <button
+        type="button"
+        class="voice-modal__mic"
+        :class="{ 'is-listening': isListening }"
+        :aria-label="isListening ? '음성 인식 중지' : '음성 인식 다시 시작'"
+        @click="retry"
+      >
+        <Icon name="mic" :size="34" />
+      </button>
+      <p class="voice-modal__status" :class="{ 'is-error': !!errorText }">{{ statusText }}</p>
 
       <div v-if="transcript" class="voice-modal__transcript">
         <p>화면에 이렇게 확인됩니다</p>
@@ -29,31 +35,67 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import AppButton from './AppButton.vue'
+import Icon from './icons/Icon.vue'
+import MascotCharacter from './MascotCharacter.vue'
 import { useSTT } from '@/composables/useSTT'
 
-const props = defineProps({
-  modelValue: { type: Boolean, default: false }
-})
-const emit = defineEmits(['update:modelValue', 'result'])
+const props = withDefaults(
+  defineProps<{
+    modelValue?: boolean
+  }>(),
+  {
+    modelValue: false
+  }
+)
+const emit = defineEmits<{ 'update:modelValue': [value: boolean]; result: [text: string] }>()
 
 const { start, stop, isListening, transcript, isSupported } = useSTT()
+const errorText = ref('')
+
+const ERROR_MESSAGES: Record<string, string> = {
+  'no-speech': '목소리가 들리지 않았어요. 다시 한 번 말씀해 주세요.',
+  'not-allowed': '마이크 사용을 허용해야 음성으로 입력할 수 있어요. 브라우저 설정에서 마이크 권한을 켜주세요.',
+  'audio-capture': '마이크를 찾을 수 없어요. 마이크가 연결되어 있는지 확인해 주세요.',
+  network: '네트워크 연결을 확인해 주세요.',
+  aborted: '음성 인식이 중단됐어요. 마이크 버튼을 다시 눌러주세요.',
+  UNSUPPORTED: '이 브라우저는 음성 인식을 지원하지 않아요. 버튼으로 입력해 주세요.'
+}
 
 const statusText = computed(() => {
-  if (!isSupported) return '이 브라우저는 음성 인식을 지원하지 않아요. 버튼으로 입력해 주세요.'
+  if (!isSupported) return ERROR_MESSAGES.UNSUPPORTED
+  if (errorText.value) return errorText.value
   if (isListening.value) return '듣고 있어요…'
   if (transcript.value) return '인식 결과를 확인해 주세요.'
   return '마이크 버튼을 눌러 말씀해 주세요.'
 })
+
+function beginListening() {
+  errorText.value = ''
+  start({
+    onError: (error) => {
+      errorText.value = ERROR_MESSAGES[error.reason] || '음성 인식 중 문제가 생겼어요. 다시 시도해 주세요.'
+    }
+  })
+}
+
+// 창이 열리자마자 바로 듣기 시작 - 이전에는 자동 시작 로직이 없어 마이크가 응답하지 않는 것처럼 보였습니다.
+watch(
+  () => props.modelValue,
+  (visible) => {
+    if (visible) beginListening()
+    else stop()
+  }
+)
 
 function close() {
   stop()
   emit('update:modelValue', false)
 }
 function retry() {
-  start({ onError: () => {} })
+  beginListening()
 }
 function confirm() {
   emit('result', transcript.value)
@@ -116,12 +158,16 @@ function confirm() {
   width: 88px;
   height: 88px;
   margin: 8px auto 0;
+  border: 0;
+  padding: 0;
   border-radius: 50%;
   background: var(--color-primary-light);
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 34px;
+  cursor: pointer;
 }
 .voice-modal__mic.is-listening {
   animation: pulse 1.1s ease-in-out infinite;
@@ -135,6 +181,10 @@ function confirm() {
   color: var(--color-text-secondary);
   font-size: var(--fs-body);
   margin: 0;
+}
+.voice-modal__status.is-error {
+  color: #c83a36;
+  font-weight: 700;
 }
 .voice-modal__transcript {
   background: var(--color-bg);
