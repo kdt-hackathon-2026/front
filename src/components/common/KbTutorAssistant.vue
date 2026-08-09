@@ -1,5 +1,15 @@
 <template>
-  <button class="kb-tutor-fab" aria-label="AI 도우미 열기" @click="openFresh">
+  <button
+    class="kb-tutor-fab"
+    :class="{ 'is-dragging': isFabDragging }"
+    :style="fabStyle"
+    aria-label="AI 도우미 열기"
+    @click="handleFabClick"
+    @pointerdown="handleFabPointerDown"
+    @pointermove="handleFabPointerMove"
+    @pointerup="handleFabPointerUp"
+    @pointercancel="handleFabPointerUp"
+  >
     <MascotCharacter :size="30" />
     <span>AI 도우미</span>
   </button>
@@ -120,14 +130,30 @@ const guides: Record<string, KbTutorGuide> = {
   }
 }
 
+guides['transfer-input'].steps.unshift({
+  elementId: 'kb-recipient-account',
+  instruction: '계좌 입력칸을 꾹 누른 뒤 붙여넣기를 선택해 계좌번호를 넣어보세요.'
+})
+
 const open = ref(false)
 const stepIndex = ref(0)
 const errorText = ref('')
+const fabOffset = ref({ x: 0, y: 0 })
+const isFabDragging = ref(false)
+const suppressFabClick = ref(false)
+
+let fabPointerStart = { x: 0, y: 0 }
+let fabOffsetStart = { x: 0, y: 0 }
+let fabBasePosition = { left: 0, top: 0, width: 0, height: 0 }
+let fabMoved = false
 
 const guide = computed(() => guides[props.screen] || guides.home)
 const currentStep = computed(() => guide.value.steps[stepIndex.value] || guide.value.steps[0])
 const isLastStep = computed(() => stepIndex.value >= guide.value.steps.length - 1)
 const displayText = computed(() => errorText.value || currentStep.value?.instruction || '')
+const fabStyle = computed<CSSProperties>(() => ({
+  transform: `translate3d(${fabOffset.value.x}px, ${fabOffset.value.y}px, 0)`
+}))
 
 const HIGHLIGHT_CLASS = 'tutor-target-highlight'
 let highlightedEl: HTMLElement | null = null
@@ -179,6 +205,54 @@ function openFresh() {
   stepIndex.value = 0
   errorText.value = ''
   open.value = true
+}
+
+function handleFabPointerDown(event: PointerEvent) {
+  if (event.pointerType === 'mouse' && event.button !== 0) return
+  const target = event.currentTarget as HTMLElement | null
+  if (!target) return
+
+  const rect = target.getBoundingClientRect()
+  fabPointerStart = { x: event.clientX, y: event.clientY }
+  fabOffsetStart = { ...fabOffset.value }
+  fabBasePosition = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
+  fabMoved = false
+  isFabDragging.value = true
+  target.setPointerCapture?.(event.pointerId)
+}
+
+function handleFabPointerMove(event: PointerEvent) {
+  if (!isFabDragging.value) return
+  const deltaX = event.clientX - fabPointerStart.x
+  const deltaY = event.clientY - fabPointerStart.y
+  if (Math.hypot(deltaX, deltaY) > 4) fabMoved = true
+
+  const minX = 8 - fabBasePosition.left
+  const maxX = window.innerWidth - fabBasePosition.width - 8 - fabBasePosition.left
+  const minY = 8 - fabBasePosition.top
+  const maxY = window.innerHeight - fabBasePosition.height - 8 - fabBasePosition.top
+  const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+  fabOffset.value = {
+    x: clamp(fabOffsetStart.x + deltaX, minX, Math.max(minX, maxX)),
+    y: clamp(fabOffsetStart.y + deltaY, minY, Math.max(minY, maxY))
+  }
+  event.preventDefault()
+}
+
+function handleFabPointerUp(event: PointerEvent) {
+  if (!isFabDragging.value) return
+  const target = event.currentTarget as HTMLElement | null
+  target?.releasePointerCapture?.(event.pointerId)
+  isFabDragging.value = false
+  if (fabMoved) {
+    suppressFabClick.value = true
+    window.setTimeout(() => { suppressFabClick.value = false }, 0)
+  }
+}
+
+function handleFabClick() {
+  if (suppressFabClick.value) return
+  openFresh()
 }
 
 function close() {
@@ -286,7 +360,7 @@ const bubbleStyle = computed<CSSProperties>(() => {
 .kb-tutor-fab {
   position: fixed;
   right: max(16px, calc((100vw - 480px) / 2 + 16px));
-  bottom: 18px;
+  bottom: calc(82px + env(safe-area-inset-bottom));
   z-index: 24;
   display: flex;
   align-items: center;
@@ -301,7 +375,11 @@ const bubbleStyle = computed<CSSProperties>(() => {
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  will-change: transform;
 }
+.kb-tutor-fab.is-dragging { cursor: grabbing; }
 .kb-tutor-overlay {
   position: fixed;
   inset: 0;

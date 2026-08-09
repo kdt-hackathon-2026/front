@@ -9,9 +9,8 @@ interface VirtualReceiverEntry {
 }
 
 export const VIRTUAL_RECEIVERS: VirtualReceiverEntry[] = [
-  { bankCode: 'KB', accountNumber: '123456789012', name: '김하나' },
+  { bankCode: 'KB', accountNumber: '94320200582932', name: '이춘자' },
   { bankCode: 'NH', accountNumber: '456789012300', name: '박철수' },
-  { bankCode: 'KB', accountNumber: '123456789013', name: '김한걸음' }
 ]
 
 function onlyDigits(v: string | null | undefined): string {

@@ -25,8 +25,70 @@ const MOCK_GUIDES: Record<ScreenCode, TutorGuide> = {
     title: '홈 화면 안내',
     summary: '계좌이체 연습이나 AI 튜터를 선택할 수 있어요.',
     actions: [
-      { order: 1, elementId: 'transfer-practice-button', instruction: '계좌이체를 연습하려면 이 버튼을 누르세요.' }
+      { order: 1, elementId: 'settings-tab', instruction: '처음에는 설정에서 글씨 크기와 AI 안내 단계를 먼저 맞춰볼게요. 아래 설정 버튼을 눌러주세요.' }
     ]
+  },
+  HOME_MESSAGES: {
+    guideId: 'GUIDE-HOME-MESSAGES-001',
+    screen: 'HOME_MESSAGES',
+    title: '메시지 미션 확인',
+    summary: '메시지에서 오늘 연습할 이체 미션을 확인해볼게요.',
+    actions: [{ order: 1, elementId: 'messages-tab', instruction: '메시지 버튼을 눌러 이체 요청 내용을 확인해볼게요.' }]
+  },
+  HOME_TRANSFER: {
+    guideId: 'GUIDE-HOME-TRANSFER-001',
+    screen: 'HOME_TRANSFER',
+    title: '이체 연습 시작',
+    summary: '미션을 확인했으니 이제 계좌이체 연습을 시작해볼게요.',
+    actions: [{ order: 1, elementId: 'transfer-practice-button', instruction: '문자에서 확인한 미션을 연습하려면 계좌이체 연습 버튼을 눌러주세요.' }]
+  },
+  APP_SETTINGS: {
+    guideId: 'GUIDE-APP-SETTINGS-001',
+    screen: 'APP_SETTINGS',
+    title: '금융한걸음 앱 설정',
+    summary: '나에게 편한 글씨와 AI 안내 방식을 차례로 설정해볼게요.',
+    actions: [
+      { order: 1, elementId: 'settings-text-size', instruction: '먼저 보기 편한 글씨 크기를 선택해보세요.' },
+      { order: 2, elementId: 'settings-help-level', instruction: 'AI 안내 수준 강도를 하·중·상 중에서 골라보세요. 처음이라면 상이 좋아요.' },
+      { order: 3, elementId: 'settings-voice-volume', instruction: 'AI 안내 음성 크기를 조절해보세요.' },
+      { order: 4, elementId: 'settings-voice-speed', instruction: 'AI 안내 음성 속도도 편한 속도로 선택해보세요.' },
+      { order: 5, elementId: 'settings-home-button', instruction: '설정이 끝났으면 홈 버튼을 눌러 처음 화면으로 돌아가볼게요.' }
+    ]
+  },
+  MESSAGES: {
+    guideId: 'GUIDE-MESSAGES-001',
+    screen: 'MESSAGES',
+    title: '오늘의 메시지 미션',
+    summary: '문자에 도착한 이체 요청을 열어 미션을 확인해볼게요.',
+    actions: [{ order: 1, elementId: 'message-card-1', instruction: '먼저 읽지 않은 메시지를 눌러 요청한 사람과 금액을 확인해보세요.' }]
+  },
+  MESSAGE_DETAIL: {
+    guideId: 'GUIDE-MESSAGE-DETAIL-001',
+    screen: 'MESSAGE_DETAIL',
+    title: '문자 속 계좌번호 확인',
+    summary: '문자 내용을 확인한 뒤 계좌번호를 복사해 이체 화면에 사용해볼게요.',
+    actions: [{ order: 1, elementId: 'message-account-link', instruction: '파란색 밑줄 계좌번호를 누르면 복사할 수 있어요. 이체 화면에 빠르게 붙여넣기 위해 복사하는 거예요.' }]
+  },
+  MESSAGE_COPY: {
+    guideId: 'GUIDE-MESSAGE-COPY-001',
+    screen: 'MESSAGE_COPY',
+    title: '계좌번호 복사',
+    summary: '복사한 계좌번호를 이체 화면에 붙여넣으면 숫자를 다시 입력하지 않아도 돼요.',
+    actions: [{ order: 1, elementId: 'copy-confirm-button', instruction: '계좌번호를 복사하려면 복사하기 버튼을 눌러주세요.' }]
+  },
+  MESSAGE_HOME: {
+    guideId: 'GUIDE-MESSAGE-HOME-001',
+    screen: 'MESSAGE_HOME',
+    title: '홈으로 돌아가기',
+    summary: '계좌번호를 복사했어요. 홈으로 돌아가 이체 연습을 시작해볼게요.',
+    actions: [{ order: 1, elementId: 'message-home-button', instruction: '복사한 계좌번호를 사용하러 홈 버튼을 눌러 돌아가세요.' }]
+  },
+  MESSAGE_SUSPICIOUS: {
+    guideId: 'GUIDE-MESSAGE-SUSPICIOUS-001',
+    screen: 'MESSAGE_SUSPICIOUS',
+    title: '의심스러운 링크 주의',
+    summary: '출처가 불분명한 문자 링크는 누르지 않고 먼저 확인해야 해요.',
+    actions: [{ order: 1, elementId: 'message-suspicious-focus', instruction: '발신번호와 확인하러 가기 링크가 함께 보이죠? 출처가 불분명한 링크는 누르면 안 돼요. 앱을 설치하거나 개인정보를 입력하게 할 수 있으니 공식 앱이나 대표번호로 직접 확인해 주세요.' }]
   },
   ONBOARDING_INTRO: {
     guideId: 'GUIDE-INTRO-001',
@@ -113,13 +175,26 @@ const MOCK_GUIDES: Record<ScreenCode, TutorGuide> = {
   }
 }
 
+function normalizeTutorGuide(guide: TutorGuide): TutorGuide {
+  return {
+    ...guide,
+    actions: guide.actions.map((action) => {
+      if (action.elementId === 'settings-home-button' || action.elementId === 'message-home-button') {
+        return { ...action, elementId: 'home-tab' }
+      }
+      return action
+    })
+  }
+}
+
 // GET /api/tutor/guides
 export async function fetchTutorGuide(screen: ScreenCode, locale = 'ko-KR'): Promise<TutorGuide> {
   if (USE_MOCK) {
     await mockDelay(150)
-    return MOCK_GUIDES[screen] || MOCK_GUIDES.HOME
+    return normalizeTutorGuide(MOCK_GUIDES[screen] || MOCK_GUIDES.HOME)
   }
-  return apiClient.get('/tutor/guides', { params: { screen, locale } }) as unknown as Promise<TutorGuide>
+  const guide = await apiClient.get('/tutor/guides', { params: { screen, locale } }) as unknown as TutorGuide
+  return normalizeTutorGuide(guide)
 }
 
 // POST /api/tutor/navigation
@@ -203,10 +278,15 @@ export async function fetchPracticeFeedback(practiceId: number): Promise<Practic
     await mockDelay(250)
     return {
       practiceId,
-      overallScore: 82,
-      strengths: ['받는 분 정보를 정확히 확인했어요.'],
-      difficultSteps: [{ stepCode: 'ENTER_AMOUNT', reason: '입력 수정 2회', timeSpentSeconds: 48 }],
-      recommendedSteps: ['ENTER_AMOUNT', 'FINAL_REVIEW']
+      overallScore: 42,
+      strengths: ['AI 도우미 안내를 다시 확인하려고 했어요.'],
+      difficultSteps: [
+        { stepCode: 'SELECT_SOURCE_ACCOUNT', reason: '출금 계좌를 잘못 골랐어요.', timeSpentSeconds: 75 },
+        { stepCode: 'ENTER_RECIPIENT_ACCOUNT', reason: '계좌번호를 여러 번 고쳤어요.', timeSpentSeconds: 98 },
+        { stepCode: 'ENTER_AMOUNT', reason: '금액 확인 없이 다음을 누르려 했어요.', timeSpentSeconds: 80 },
+        { stepCode: 'FINAL_REVIEW', reason: '받는 분과 금액 확인을 놓쳤어요.', timeSpentSeconds: 64 }
+      ],
+      recommendedSteps: ['SELECT_SOURCE_ACCOUNT', 'ENTER_RECIPIENT_ACCOUNT', 'ENTER_AMOUNT', 'FINAL_REVIEW']
     }
   }
   return apiClient.get(`/practices/${practiceId}/feedback`) as unknown as Promise<PracticeFeedback>

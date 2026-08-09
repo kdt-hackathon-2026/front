@@ -7,6 +7,21 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/HomeView.vue')
   },
   {
+    path: '/messages',
+    name: 'messages',
+    component: () => import('@/views/MessagesView.vue')
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('@/views/AppSettingsView.vue')
+  },
+  {
+    path: '/analysis',
+    name: 'analysis-note',
+    component: () => import('@/views/AnalysisNoteView.vue')
+  },
+  {
     path: '/kb-transfer',
     name: 'kb-transfer',
     component: () => import('@/views/KbDemoView.vue')

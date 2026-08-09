@@ -29,6 +29,15 @@
 
         <TipBox tone="yellow">가상 연습입니다. 실제 돈은 이용하지 않아요.</TipBox>
 
+        <button class="analysis-note-button" @click="router.push('/analysis')">
+          <span class="analysis-note-button__icon" aria-hidden="true"><Icon name="sparkle" :size="20" /></span>
+          <span>
+            <strong>AI 분석노트</strong>
+            <small>실습 결과와 부족한 부분 확인하기</small>
+          </span>
+          <Icon name="chevron-right" :size="18" />
+        </button>
+
         <div v-if="resumePractice" class="resume-card">
           <p class="resume-card__title">이어서 연습할까요?</p>
           <p class="resume-card__desc">{{ resumePractice.scenarioTitle }} · 진행률 {{ resumePractice.progressRate }}%</p>
@@ -51,12 +60,14 @@ import TipBox from '@/components/common/TipBox.vue'
 import Icon from '@/components/common/icons/Icon.vue'
 import IntroMotion from '@/components/common/IntroMotion.vue'
 import { useSessionStore } from '@/stores/session'
+import { useTutorStore } from '@/stores/tutor'
 import { fetchHome } from '@/api/homeApi'
 import { stepIndexForCode } from '@/router/screenMap'
 import type { HelpLevel, ResumePractice } from '@/types'
 
 const router = useRouter()
 const store = useSessionStore()
+const tutor = useTutorStore()
 const activeTab = ref('home')
 
 const showIntro = ref(false)
@@ -82,6 +93,10 @@ function dismissIntro() {
 }
 
 function goTransferPractice() {
+  if (tutor.walkthroughStep === 'home-transfer') {
+    tutor.setWalkthroughStep('done')
+    tutor.close()
+  }
   // 온보딩을 마치지 않았으면 온보딩(소개→접근성→은행)부터, 마쳤으면 스스로 해보기로 안내
   router.push(store.onboardingDone ? '/practice' : '/onboarding/intro')
 }
@@ -122,18 +137,28 @@ function resume() {
   gap: 2px;
 }
 .hero-card__text strong {
-  font-size: var(--fs-title);
+  font-size: 22px;
 }
 .hero-card__text small {
-  font-size: var(--fs-caption);
+  font-size: 16px;
   opacity: 0.85;
+}
+.screen-title {
+  color: #102a43;
+  font-size: 30px;
+  line-height: 1.35;
+}
+.screen-subtitle {
+  color: #334e68;
+  font-size: 18px;
+  line-height: 1.55;
 }
 .status-strip {
   display: flex;
   align-items: center;
   gap: 14px;
-  font-size: var(--fs-caption);
-  color: var(--color-text-secondary);
+  font-size: 16px;
+  color: #334e68;
   flex-wrap: wrap;
 }
 .status-strip strong {
@@ -144,6 +169,7 @@ function resume() {
   border: none;
   background: none;
   color: var(--color-primary);
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -153,7 +179,7 @@ function resume() {
   background: none;
   color: var(--color-primary);
   font-weight: 700;
-  font-size: var(--fs-caption);
+  font-size: 16px;
   text-decoration: underline;
   cursor: pointer;
   padding: 0;
@@ -167,6 +193,49 @@ function resume() {
   flex-direction: column;
   gap: 8px;
 }
+.analysis-note-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+  min-height: 88px;
+  margin-top: 14px;
+  gap: 14px;
+  padding: 20px 18px;
+  border: 2px solid #2a56a3;
+  border-radius: var(--radius-md);
+  background: #f1f6ff;
+  color: #102a43;
+  box-shadow: 0 0 0 3px #dbe8ff, 0 6px 14px rgba(42, 86, 163, .18);
+  text-align: left;
+  cursor: pointer;
+}
+.analysis-note-button__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  background: #d7e7ff;
+  color: #174a8b;
+}
+.analysis-note-button > span:nth-child(2) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+.analysis-note-button strong {
+  color: #102a43;
+  font-size: 22px;
+}
+.analysis-note-button small {
+  color: #334e68;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.home :deep(.tip-box) { font-size: 17px; line-height: 1.55; }
 .resume-card__title {
   margin: 0;
   font-weight: 800;

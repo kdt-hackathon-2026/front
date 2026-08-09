@@ -59,6 +59,7 @@ function emptyFlow(): FlowState {
 }
 
 export interface LastResult {
+  practiceId?: number
   mode: PracticeMode
   bankName?: string
   recipientName?: string | null
@@ -94,7 +95,8 @@ export const useSessionStore = defineStore('session', {
       textSize: 'LARGE',
       buttonSize: 'LARGE',
       highContrastEnabled: false,
-      speechRate: 0.8
+      speechRate: 0.8,
+      voiceVolume: 0.4
     },
     onboardingDone: false,
     introVideoSeen: false,
@@ -241,6 +243,7 @@ export const useSessionStore = defineStore('session', {
     finishFlow(result: FinishFlowInput) {
       this.flow.completedAt = Date.now()
       this.lastResult = {
+        practiceId: this.flow.practiceId || undefined,
         ...result,
         durationSec: this.flow.startedAt
           ? Math.round((this.flow.completedAt - this.flow.startedAt) / 1000)

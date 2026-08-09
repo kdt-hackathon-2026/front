@@ -21,7 +21,8 @@
     <div class="app-header__right">
       <span v-if="badge" class="app-header__badge">{{ badge }}</span>
       <button
-        v-if="showHome"
+        v-if="false && showHome"
+        :data-tutor-id="homeTutorId"
         class="app-header__icon-btn"
         aria-label="홈으로 이동"
         @click="$emit('home')"
@@ -43,6 +44,7 @@ withDefaults(
     showBack?: boolean
     showHome?: boolean
     badge?: string
+    homeTutorId?: string
     // 은행 객체(assets/data/banks.ts)를 전달하면 해당 은행의 테마(예: KB국민은행 스타일)로 헤더를 표시
     bank?: Bank | null
   }>(),
@@ -50,6 +52,7 @@ withDefaults(
     showBack: false,
     showHome: false,
     badge: '',
+    homeTutorId: '',
     bank: null
   }
 )

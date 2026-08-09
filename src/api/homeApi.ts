@@ -8,7 +8,8 @@ const MOCK_SETTINGS: UserSettings = {
   textSize: 'LARGE',
   buttonSize: 'LARGE',
   highContrastEnabled: false,
-  speechRate: 0.8
+  speechRate: 0.8,
+  voiceVolume: 0.4
 }
 
 let mockFirstVisit = true

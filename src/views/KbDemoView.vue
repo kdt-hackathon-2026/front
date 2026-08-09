@@ -31,7 +31,7 @@
       <article class="account-card">
         <div class="account-card__title">
           <span class="kb-mark">KB</span>
-          직장인우대종합통장-보통예금
+          보통예금
           <button aria-label="계좌 메뉴"><Icon name="menu" :size="20" /></button>
         </div>
         <div class="account-number">{{ formatAccount(primaryAccount.number) }} <button aria-label="계좌번호 복사" @click="copyAccount(primaryAccount.number)"><Icon name="copy" :size="17" /></button></div>
@@ -126,7 +126,20 @@
       <KbHeader title="이체" cancel @back="goBack" @home="goHome" />
       <div class="transfer-progress" aria-label="이체 진행 단계"><span class="active">1 받는 계좌</span><span>2 금액</span><span>3 확인</span></div>
       <div class="transfer-intro"><div>누구에게 보낼까요?</div><button @click="openBankPicker">계좌선택</button></div>
-      <button class="account-input-line" data-tutor-id="kb-recipient-account" @click="screen = 'transfer-input'">{{ recipientAccount ? formatAccount(recipientAccount) : '계좌번호' }}<Icon v-if="recipientAccount" name="close" :size="18" @click.stop="clearRecipient" /></button>
+      <button v-if="screen === 'transfer-start'" class="account-input-line" data-tutor-id="kb-recipient-account" @click="screen = 'transfer-input'">{{ recipientAccount ? formatAccount(recipientAccount) : '계좌번호' }}<Icon v-if="recipientAccount" name="close" :size="18" @click.stop="clearRecipient" /></button>
+      <div v-else class="account-input-line-wrap" data-tutor-id="kb-recipient-account">
+        <input
+          class="account-input-editable"
+          :value="recipientAccount ? formatAccount(recipientAccount) : ''"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="계좌번호"
+          aria-label="받는 분 계좌번호 입력"
+          @input="handleAccountInput"
+          @paste="handleAccountPaste"
+        />
+        <button v-if="recipientAccount" type="button" aria-label="계좌번호 지우기" @click="clearRecipient"><Icon name="close" :size="18" /></button>
+      </div>
       <button class="bank-select-line" data-tutor-id="kb-bank-select" @click="openBankPicker"><strong>{{ selectedRecipientBank || '은행/증권사' }}</strong><Icon name="chevron-down" /></button>
       <p v-if="accountError" class="field-error"><Icon name="alert-triangle" :size="17" /> {{ accountError }}</p>
       <div v-if="screen === 'transfer-start'" class="recent-area">
@@ -134,7 +147,7 @@
         <button v-for="choice in recipientChoices" :key="choice.number" class="recent-recipient" @click="selectRecipientAndContinue(choice)"><span class="bank-logo" :style="{ background: choice.color }">{{ choice.mark }}</span><span><strong>{{ choice.name }}</strong><small>{{ choice.bank }} {{ formatAccount(choice.number) }}</small></span><Icon name="chevron-right" /></button>
       </div>
       <template v-else>
-        <div class="practice-account-hint"><Icon name="info" :size="18" /><span>연습용 계좌번호 <strong>94320200696995</strong></span><button data-tutor-id="kb-sample-account-button" @click="useSampleAccount">자동 입력</button></div>
+        <div class="practice-account-hint"><Icon name="info" :size="18" /><span>연습용 계좌번호 <strong>94320200582932</strong></span><button data-tutor-id="kb-sample-account-button" @click="useSampleAccount">자동 입력</button></div>
         <div class="transfer-shortcuts"><button @click="notify('촬영 이체는 이 연습에서 지원하지 않아요.')"><Icon name="camera" :size="18" /> 촬영이체</button><span>|</span><button @click="notify('연락처 이체는 이 연습에서 지원하지 않아요.')"><Icon name="users" :size="18" /> 연락처이체</button></div>
         <div class="number-keypad account-keypad" data-tutor-id="kb-numeric-keypad">
           <button v-for="key in numberKeys" :key="key" @click="appendAccount(key)">{{ key }}</button>
@@ -249,6 +262,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useSessionStore } from '@/stores/session'
 import Icon from '@/components/common/icons/Icon.vue'
 import KbHeader from '@/components/common/KbHeader.vue'
@@ -263,17 +277,18 @@ type RecipientOption = { name: string; bank: string; number: string; mark: strin
 type Transaction = { date: string; name: string; amount: number; balance: number }
 
 const screen = ref<KbScreen>('home')
+const router = useRouter()
 const session = useSessionStore()
 const largeText = ref(localStorage.getItem('hangeoleum.kb.largeText') === 'true')
 const easyMode = ref(localStorage.getItem('hangeoleum.kb.easyMode') !== 'false')
 const darkMode = ref(localStorage.getItem('hangeoleum.kb.darkMode') === 'true')
 const notificationEnabled = ref(localStorage.getItem('hangeoleum.kb.notification') === 'true')
 const profileName = '김복자'
-const balance = ref(34844)
-const primaryAccount: AccountOption = { bank: 'KB국민', number: '85560100126675', balance: 34844 }
+const balance = ref(32515123)
+const primaryAccount: AccountOption = { bank: 'KB국민', number: '85560100126675', balance: 32515123 }
 const selectedSourceAccount = ref<AccountOption>(primaryAccount)
-const recipientName = ref('장진서')
-const recipientDisplayName = ref('장진서')
+const recipientName = ref('이춘자')
+const recipientDisplayName = ref('이춘자')
 const senderDisplayName = ref('김복자')
 const selectedRecipientBank = ref('')
 const recipientAccount = ref('')
@@ -291,7 +306,6 @@ const currentTime = ref('')
 const showDetail = ref(false)
 const transactionTime = ref('')
 const showHistoryBalance = ref(true)
-let clockTimer: number | undefined
 let toastTimer: number | undefined
 
 const numberKeys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
@@ -320,16 +334,16 @@ const banks: BankOption[] = [
 ]
 const taxes = ['국세', '국고금', '관세', '지방세입']
 const recipientChoices: RecipientOption[] = [
-  { name: '장진서', bank: 'KB국민', number: '94320200696995', mark: 'KB', color: '#66594b' },
+  { name: '이춘자', bank: 'KB국민', number: '94320200582932', mark: 'KB', color: '#66594b' },
   { name: '김복자', bank: '신한', number: '110123456789', mark: 'S', color: '#1a56dc' },
   { name: '홍길동', bank: '카카오뱅크', number: '3333123456789', mark: 'B', color: '#ffd400' },
 ]
-const recipientDisplayChoices = ['장진서', '급여', '월세', '용돈', '회비']
+const recipientDisplayChoices = ['이춘자', '급여', '월세', '용돈', '회비']
 const senderDisplayChoices = ['김복자', '식비', '통신비', '교육비', '용돈', '월세', '저축']
 const transactions = ref<Transaction[]>([
-  { date: '08.09 19:41:03', name: '장진서', amount: -5, balance: 33639 },
-  { date: '08.09 19:38:01', name: '장진서', amount: -50, balance: 33644 },
-  { date: '08.09 19:30:43', name: '장진서', amount: -1000, balance: 33694 },
+  { date: '08.03 19:41:03', name: '이춘자', amount: -5, balance: 33639 },
+  { date: '07.28 19:38:01', name: '이춘자', amount: -50, balance: 33644 },
+  { date: '07.15 19:30:43', name: '이춘자', amount: -1000, balance: 33694 },
 ])
 
 const availableBalance = computed(() => selectedSourceAccount.value.number === primaryAccount.number ? balance.value : selectedSourceAccount.value.balance)
@@ -337,18 +351,11 @@ const availableBalance = computed(() => selectedSourceAccount.value.number === p
 const koreanAmount = computed(() => amountToKorean(amount.value))
 const currentYearMonth = computed(() => new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: '2-digit' }).format(new Date()))
 
-function updateClock() {
-  currentTime.value = new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date())
-}
-
 onMounted(() => {
   session.restoreFromLocalStorage()
-  updateClock()
-  clockTimer = window.setInterval(updateClock, 30_000)
 })
 
 onBeforeUnmount(() => {
-  if (clockTimer) window.clearInterval(clockTimer)
   if (toastTimer) window.clearTimeout(toastTimer)
 })
 
@@ -359,7 +366,7 @@ function formatAccount(value: string) {
   return value
 }
 
-function goHome() { screen.value = 'home'; showConfirm.value = false; closeOverlays() }
+function goHome() { showConfirm.value = false; closeOverlays(); router.push('/') }
 function goBack() {
   if (screen.value === 'transfer-input') screen.value = 'transfer-start'
   else if (screen.value === 'amount') screen.value = 'transfer-input'
@@ -381,8 +388,8 @@ function enableLargeText() { localStorage.setItem('hangeoleum.kb.largeText', Str
 function startTransfer() {
   recipientAccount.value = ''
   selectedRecipientBank.value = ''
-  recipientName.value = '장진서'
-  recipientDisplayName.value = '장진서'
+  recipientName.value = '이춘자'
+  recipientDisplayName.value = '이춘자'
   amount.value = 0
   accountError.value = ''
   amountError.value = ''
@@ -391,14 +398,25 @@ function startTransfer() {
   closeOverlays()
 }
 function appendAccount(key: string) { if (recipientAccount.value.length < 14) recipientAccount.value += key; accountError.value = ''; tutorError.value = '' }
+function setAccountInput(value: string) {
+  recipientAccount.value = value.replace(/\D/g, '').slice(0, 14)
+  accountError.value = ''
+  tutorError.value = ''
+  if (recipientAccount.value === '94320200582932') selectedRecipientBank.value = 'KB국민'
+}
+function handleAccountInput(event: Event) { setAccountInput((event.target as HTMLInputElement).value) }
+function handleAccountPaste(event: ClipboardEvent) {
+  event.preventDefault()
+  setAccountInput(event.clipboardData?.getData('text') || '')
+}
 function deleteAccount() { recipientAccount.value = recipientAccount.value.slice(0, -1); accountError.value = '' }
 function clearRecipient() { recipientAccount.value = ''; accountError.value = '' }
-function useSampleAccount() { recipientAccount.value = '94320200696995'; selectedRecipientBank.value = 'KB국민'; recipientName.value = '장진서'; recipientDisplayName.value = '장진서'; screen.value = 'transfer-input'; accountError.value = ''; notify('연습용 계좌번호를 입력했어요.') }
+function useSampleAccount() { recipientAccount.value = '94320200582932'; selectedRecipientBank.value = 'KB국민'; recipientName.value = '이춘자'; recipientDisplayName.value = '이춘자'; screen.value = 'transfer-input'; accountError.value = ''; notify('연습용 계좌번호를 입력했어요.') }
 function confirmAccount() {
   if (recipientAccount.value.length !== 14) { accountError.value = '계좌번호 14자리를 모두 입력해 주세요.'; tutorError.value = accountError.value; return }
   if (!selectedRecipientBank.value) { accountError.value = '은행을 먼저 선택해 주세요.'; tutorError.value = accountError.value; return }
   const matched = recipientChoices.find((choice) => choice.number === recipientAccount.value && choice.bank === selectedRecipientBank.value)
-  if (!matched) { accountError.value = '등록되지 않은 연습용 계좌예요. 94320200696995를 입력해 주세요.'; tutorError.value = accountError.value; return }
+  if (!matched) { accountError.value = '등록되지 않은 연습용 계좌예요. 94320200582932를 입력해 주세요.'; tutorError.value = accountError.value; return }
   recipientName.value = matched.name
   recipientDisplayName.value = matched.name
   accountError.value = ''
@@ -477,7 +495,7 @@ function clearPracticeSettings() {
 <style scoped>
 .kb-app { --kb-yellow:#ffd338; --kb-blue-bg:#eef5fb; --kb-text:#24262b; min-height:100vh; background:var(--kb-blue-bg); color:var(--kb-text); font-family:'Pretendard','Malgun Gothic',sans-serif; font-size:16px; }
 .kb-app.large-mode { font-size:20px; }
-.status-bar { height:42px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; background:#f8fbff; font-size:13px; color:#3d4046; }
+.status-bar { display:none; }
 .status-bar strong { font-size:18px; }.status-bar__icons { letter-spacing:2px; }
 .kb-page { min-height:calc(100vh - 42px); position:relative; overflow:hidden; } button { border:0; font:inherit; color:inherit; background:transparent; cursor:pointer; }
 .home-topbar { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 12px; }.simple-home { display:flex; align-items:center; gap:8px; font-size:1.05em; }
@@ -499,4 +517,8 @@ function clearPracticeSettings() {
 .history-page { background:#fff; }.history-account { padding:24px 28px 26px; }.history-account p { margin:0 0 9px; color:#59616a; font-size:1.05em; }.history-account>button { display:block; font-size:1.5em; font-weight:700; }.history-account>button span { color:#6e7780; }.history-account>b { display:block; margin:76px 0 0; text-align:right; font-size:2.8em; }.history-account>b small { font-size:.45em; font-weight:400; }.history-account>small { display:block; text-align:right; color:#68717b; }.history-account>div { display:flex; gap:12px; margin-top:36px; }.history-account>div button { flex:1; min-height:56px; background:#e9edf0; font-size:1.05em; }.history-filter { display:flex; align-items:center; justify-content:space-between; padding:19px 28px; background:#f6f7f8; border-top:1px solid #dfe3e6; border-bottom:1px solid #dfe3e6; }.history-filter>span:first-child { font-size:2em; color:#646d76; }.history-filter strong { font-size:1.02em; }.history-body { padding:25px 28px; }.history-range { padding:0 0 22px; border-bottom:3px solid #747c84; }.history-range>span { float:right; display:flex; align-items:center; gap:6px; }.history-range .switch { transform:scale(.8); }.history-body h3 { margin:24px 0 14px; padding-bottom:22px; border-bottom:1px solid #e4e7e9; }.history-body h3 span { float:right; }.transaction-item { position:relative; min-height:116px; padding:18px 0; border-bottom:1px solid #e4e7e9; }.transaction-item p { margin:0 0 16px; color:#737c85; }.transaction-item p i { margin:0 10px; color:#c1c5c9; }.transaction-item>strong { font-size:1.2em; }.transaction-item>b { position:absolute; right:0; top:82px; font-size:1.2em; }.transaction-item>b.negative { color:#25282c; }.transaction-item>b small { display:block; margin-top:6px; color:#777f87; font-size:.75em; font-weight:400; }
 .transfer-progress{display:flex;padding:12px 22px;background:#f5f6f8}.transfer-progress span{position:relative;flex:1;color:#8a9199;text-align:center;font-size:.78em}.transfer-progress span+span:before{content:'';position:absolute;left:-12px;top:50%;width:24px;height:1px;background:#ccd1d6}.transfer-progress .active{color:#5a4e3e;font-weight:800}.transfer-progress .done{color:#25785c}.recent-area{padding:18px 26px 90px}.recent-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.recent-heading button{color:#536a96;text-decoration:underline}.recent-recipient{display:flex;align-items:center;gap:13px;width:100%;padding:16px 0;border-bottom:1px solid #e3e6e9;text-align:left}.recent-recipient>span:nth-child(2),.recipient-summary>span:nth-child(2){display:flex;flex:1;flex-direction:column;gap:5px}.recent-recipient small,.recipient-summary small{color:#69717a}.practice-account-hint{display:flex;align-items:center;gap:8px;margin:18px 26px 0;padding:12px 14px;border:1px solid #f0d16f;border-radius:12px;background:#fff8dc;font-size:.86em}.practice-account-hint span{flex:1}.practice-account-hint button{color:#22468c;font-weight:800;text-decoration:underline}.transfer-shortcuts button{display:flex;align-items:center;gap:5px}.field-error{display:flex;align-items:center;gap:6px;margin:10px 28px;color:#c83a36;font-size:.9em}.recipient-summary{display:flex;align-items:center;gap:12px;margin:24px 28px 42px;padding:14px;border:1px solid #e0e4e8;border-radius:14px;text-align:left}.recipient-summary button{color:#596f9c;text-decoration:underline}.korean-amount{min-height:22px;margin:7px 0;color:#6b727a}.quick-amounts{flex-wrap:wrap}.quick-amounts .reset-amount{flex-basis:100%;border:0;color:#606a74;text-decoration:underline}.transfer-limit{display:grid;grid-template-columns:1fr auto;gap:8px;margin:10px 28px 14px;padding:13px 0;border-top:1px solid #e2e5e8;color:#666e76;font-size:.84em}.transfer-limit strong{color:#2b2e33}.safety-check{display:flex;gap:12px;margin:16px 28px;padding:14px;border-radius:12px;background:#eef6f3;color:#28644f;text-align:left}.safety-check span{display:flex;flex-direction:column;gap:4px}.safety-check small{line-height:1.4}.done-links button{display:flex;align-items:center;gap:6px}.detail-link{display:flex;align-items:center;justify-content:flex-end;gap:5px;width:100%;border:0;border-top:1px solid #e6e8ea;background:transparent}.transfer-detail{margin:0 28px 26px;padding:14px;border-radius:12px;background:#f5f6f7;text-align:left}.transfer-detail div{display:flex;justify-content:space-between;padding:7px 0}.transfer-detail dt{color:#6d747c}.transfer-detail dd{margin:0;font-weight:700}.kb-toast{position:fixed;left:50%;bottom:86px;z-index:70;transform:translateX(-50%);width:min(410px,calc(100% - 36px));padding:13px 16px;border-radius:12px;background:#24262bee;color:#fff;text-align:center}.modal-layer{justify-items:center}.bank-sheet,.choice-sheet,.display-sheet,.confirm-modal{width:min(100%,480px)}.dark-mode,.dark-mode .kb-page,.dark-mode .menu-page,.dark-mode .settings-page,.dark-mode .easy-page,.dark-mode .transfer-page,.dark-mode .history-page{background:#17191d;color:#f4f5f6}.dark-mode .status-bar,.dark-mode .account-card,.dark-mode .home-service-card,.dark-mode .ars-card,.dark-mode .bottom-nav,.dark-mode .bank-sheet,.dark-mode .choice-sheet,.dark-mode .display-sheet,.dark-mode .confirm-modal{background:#25282e;color:#f4f5f6}.dark-mode .source-account-bar,.dark-mode .transfer-progress,.dark-mode .transfer-detail,.dark-mode .history-filter{background:#30343a}.dark-mode .settings-list>button,.dark-mode .recent-recipient,.dark-mode .choice-row{border-color:#454a52}.dark-mode .practice-account-hint{background:#40391e;color:#fff5c2}.dark-mode .account-input-line,.dark-mode .bank-select-line,.dark-mode .settings-label{color:#f4f5f6}.dark-mode .display-input-wrap input{color:#fff}
 @media (max-width:380px) { .home-links{gap:8px}.account-card{margin-left:14px;margin-right:14px}.home-service-card,.ars-card{margin-left:14px;margin-right:14px}.product-grid{gap:5px}.product-grid button{font-size:.8em}.bank-grid{padding-left:20px;padding-right:20px}.bank-grid button{font-size:.95em}.source-account-bar,.account-input-line,.bank-select-line{font-size:1.15em} }
+.account-input-line-wrap { display:flex; align-items:center; width:calc(100% - 56px); margin:0 28px; border-bottom:3px solid #b6a479; }
+.account-input-editable { min-width:0; flex:1; padding:22px 5px; border:0; outline:0; background:transparent; font:inherit; font-size:1.45em; color:#92969a; font-weight:700; }
+.account-input-editable::placeholder { color:#92969a; }
+.account-input-line-wrap>button { flex:none; padding:18px 5px; color:#92969a; }
 </style>

@@ -4,6 +4,8 @@ import type { ScreenCode, StepCode } from '@/types'
 // vue-router의 route.name 을 AI 튜터 API의 ScreenCode로 변환합니다.
 const ROUTE_TO_SCREEN: Record<string, ScreenCode> = {
   home: 'HOME',
+  settings: 'APP_SETTINGS',
+  messages: 'MESSAGES',
   'onboarding-intro': 'ONBOARDING_INTRO',
   'onboarding-start': 'ONBOARDING_INTRO',
   'onboarding-accessibility': 'ONBOARDING_INTRO',

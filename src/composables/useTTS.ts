@@ -26,6 +26,7 @@ export function useTTS() {
     const utter = new SpeechSynthesisUtterance(text)
     utter.lang = 'ko-KR'
     utter.rate = store.settings.speechRate || 0.8
+    utter.volume = store.settings.voiceVolume ?? 1
     utter.onstart = () => {
       isSpeaking.value = true
     }

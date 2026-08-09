@@ -6,9 +6,9 @@ export const SCENARIOS: Scenario[] = [
     scenarioId: 1,
     title: '병원비 보내기',
     difficulty: 'BEGINNER',
-    recipientName: '김하나',
+    recipientName: '이춘자',
     bankCode: 'KB',
-    maskedAccountNumber: '123-***-456789',
+    maskedAccountNumber: '943-***-582932',
     amount: 50000
   },
   {
@@ -24,9 +24,9 @@ export const SCENARIOS: Scenario[] = [
     scenarioId: 3,
     title: '생활비 보내기',
     difficulty: 'BEGINNER',
-    recipientName: '김한걸음',
+    recipientName: '이춘자',
     bankCode: 'KB',
-    maskedAccountNumber: '123-***-789012',
+    maskedAccountNumber: '943-***-582932',
     amount: 50000
   }
 ]

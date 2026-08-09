@@ -40,6 +40,14 @@ export type ScreenCode =
   | 'AUTHENTICATION'
   | 'RESULT'
   | 'AI_TUTOR'
+  | 'HOME_MESSAGES'
+  | 'HOME_TRANSFER'
+  | 'APP_SETTINGS'
+  | 'MESSAGES'
+  | 'MESSAGE_DETAIL'
+  | 'MESSAGE_COPY'
+  | 'MESSAGE_HOME'
+  | 'MESSAGE_SUSPICIOUS'
 
 export type StepCode =
   | 'SELECT_SOURCE_ACCOUNT'
@@ -91,6 +99,7 @@ export interface UserSettings {
   buttonSize: ButtonSize
   highContrastEnabled: boolean
   speechRate: number
+  voiceVolume: number
 }
 
 // ---------------------------------------------------------

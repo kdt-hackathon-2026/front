@@ -4,6 +4,13 @@
       <div class="tutor-overlay__scrim" @click="handleScrimClick" />
 
       <div
+        v-if="targetRect"
+        class="tutor-overlay__spotlight"
+        :style="spotlightStyle"
+        aria-hidden="true"
+      />
+
+      <div
         class="tutor-overlay__character"
         :style="characterStyle"
       >
@@ -58,6 +65,7 @@ const { speak } = useTTS()
 
 const HIGHLIGHT_CLASS = 'tutor-target-highlight'
 let highlightedEl: HTMLElement | null = null
+let locateRequestId = 0
 
 const targetRect = ref<DOMRect | null>(null)
 // #app(가운데 정렬된 480px 컬럼)의 실제 화면 영역 - 데스크톱 넓은 화면에서 오버레이가
@@ -83,19 +91,30 @@ function clearHighlight() {
   }
 }
 
+async function findTutorTarget(elementId: string) {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    await nextTick()
+    const el = document.querySelector<HTMLElement>(`[data-tutor-id="${elementId}"]`)
+    if (el) return el
+    await new Promise((resolve) => window.setTimeout(resolve, 40))
+  }
+  return null
+}
+
 async function locateTarget() {
+  const requestId = ++locateRequestId
   clearHighlight()
+  targetRect.value = null
   const elementId = tutor.currentAction?.elementId
   if (!elementId) {
-    targetRect.value = null
     return
   }
-  await nextTick()
-  const el = document.querySelector<HTMLElement>(`[data-tutor-id="${elementId}"]`)
+  const el = await findTutorTarget(elementId)
   if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.scrollIntoView({ behavior: 'auto', block: 'center' })
     // 스크롤 애니메이션이 끝날 시간을 살짝 준 뒤 위치를 다시 잽니다.
-    await new Promise((r) => setTimeout(r, 220))
+    await nextTick()
+    if (requestId !== locateRequestId || !tutor.isOpen || !el.isConnected) return
     targetRect.value = el.getBoundingClientRect()
     el.classList.add(HIGHLIGHT_CLASS)
     highlightedEl = el
@@ -112,7 +131,9 @@ watch(
       const text = tutor.currentAction?.instruction || tutor.guide?.summary
       if (text && !tutor.loading) speak(text)
     } else {
+      locateRequestId += 1
       clearHighlight()
+      targetRect.value = null
     }
   },
   { immediate: true }
@@ -150,6 +171,17 @@ const bubbleStyle = computed<CSSProperties>(() => {
   return { top: `${top}px`, left: `${left}px`, right: 'auto', bottom: 'auto' }
 })
 
+const spotlightStyle = computed<CSSProperties>(() => {
+  const rect = targetRect.value
+  if (!rect) return { display: 'none' }
+  return {
+    top: `${Math.max(0, rect.top - 4)}px`,
+    left: `${Math.max(0, rect.left - 4)}px`,
+    width: `${rect.width + 8}px`,
+    height: `${rect.height + 8}px`
+  }
+})
+
 function handleScrimClick() {
   tutor.close()
 }
@@ -182,7 +214,16 @@ function handleScrimClick() {
   position: absolute;
   inset: 0;
   background: rgba(15, 23, 42, 0.12);
-  pointer-events: auto;
+  pointer-events: none;
+}
+.tutor-overlay__spotlight {
+  position: fixed;
+  z-index: 62;
+  border: 3px solid var(--color-primary, #22468c);
+  border-radius: 12px;
+  box-shadow: 0 0 0 4px rgba(34, 70, 140, 0.2);
+  animation: tutor-spotlight-pulse 1.2s ease-in-out infinite;
+  pointer-events: none;
 }
 .tutor-overlay__character {
   position: fixed;
@@ -268,5 +309,9 @@ function handleScrimClick() {
   background: var(--color-primary, #22468c);
   color: var(--color-on-primary, #fff);
   border-color: transparent;
+}
+@keyframes tutor-spotlight-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.62; }
 }
 </style>
