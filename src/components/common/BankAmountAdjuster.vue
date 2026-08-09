@@ -11,12 +11,20 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  options: {
-    type: Array,
+<script setup lang="ts">
+export interface AmountAdjustOption {
+  label: string
+  type: 'add' | 'subtract' | 'all'
+  value?: number
+}
+
+withDefaults(
+  defineProps<{
+    options?: AmountAdjustOption[]
+  }>(),
+  {
     // 각 항목: { label: '+10만', type: 'add'|'subtract'|'all', value: 100000 }
-    default: () => [
+    options: () => [
       { label: '+10만', type: 'add', value: 100000 },
       { label: '+5만', type: 'add', value: 50000 },
       { label: '-5만', type: 'subtract', value: 50000 },
@@ -24,8 +32,8 @@ defineProps({
       { label: '전액', type: 'all' }
     ]
   }
-})
-defineEmits(['adjust'])
+)
+defineEmits<{ adjust: [option: AmountAdjustOption] }>()
 </script>
 
 <style scoped>

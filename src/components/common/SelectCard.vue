@@ -5,27 +5,49 @@
     :disabled="disabled"
     @click="$emit('click')"
   >
-    <span v-if="icon" class="select-card__icon" :style="iconBg ? { background: iconBg } : {}" aria-hidden="true">
-      {{ icon }}
+    <span
+      v-if="iconName || icon"
+      class="select-card__icon"
+      :style="iconBg ? { background: iconBg } : {}"
+      aria-hidden="true"
+    >
+      <Icon v-if="iconName" :name="iconName" :size="20" />
+      <template v-else>{{ icon }}</template>
     </span>
     <span class="select-card__body">
       <span class="select-card__title">{{ title }}</span>
       <span v-if="subtitle" class="select-card__subtitle">{{ subtitle }}</span>
     </span>
-    <span v-if="selected" class="select-card__check" aria-hidden="true">✓</span>
+    <span v-if="selected" class="select-card__check" aria-hidden="true"><Icon name="check" :size="14" /></span>
   </button>
 </template>
 
-<script setup>
-defineProps({
-  title: { type: String, required: true },
-  subtitle: { type: String, default: '' },
-  icon: { type: String, default: '' },
-  iconBg: { type: String, default: '' },
-  selected: { type: Boolean, default: false },
-  disabled: { type: Boolean, default: false }
-})
-defineEmits(['click'])
+<script setup lang="ts">
+import Icon from './icons/Icon.vue'
+import type { IconName } from './icons/registry'
+
+withDefaults(
+  defineProps<{
+    title: string
+    subtitle?: string
+    /** SVG 아이콘(registry.ts)을 쓸 때 - 계좌/시나리오 아이콘 등 */
+    iconName?: IconName | string
+    /** 은행 이니셜처럼 짧은 글자를 그대로 보여줄 때 (SVG가 없는 경우의 대체 표시) */
+    icon?: string
+    iconBg?: string
+    selected?: boolean
+    disabled?: boolean
+  }>(),
+  {
+    subtitle: '',
+    iconName: '',
+    icon: '',
+    iconBg: '',
+    selected: false,
+    disabled: false
+  }
+)
+defineEmits<{ click: [] }>()
 </script>
 
 <style scoped>

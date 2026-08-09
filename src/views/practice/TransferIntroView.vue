@@ -1,11 +1,13 @@
 <template>
-  <div class="page">
-    <AppHeader title="함께 해보기" badge="가상 연습" show-back show-home @back="router.push('/')" @home="router.push('/')" />
+  <div class="page" :style="themeStyle">
+    <AppHeader title="함께 해보기" badge="처음 배우기" :bank="pendingBank" show-back show-home @back="router.push('/together')" @home="router.push('/')" />
 
     <div class="screen">
-      <h2 class="screen-title">6단계를 같이 배워요</h2>
+      <h2 class="screen-title">5단계를 같이 배워요</h2>
 
-      <MascotTip>막히면 AI 튜터가 다음 버튼을 알려줘요.</MascotTip>
+      <MascotTip>
+        처음 배우기예요. 막히지 않아도 제가 화면마다 순서대로 다 알려드릴게요.
+      </MascotTip>
 
       <div class="scenario-card">
         <p class="scenario-card__label">가상 설정</p>
@@ -14,37 +16,70 @@
       </div>
 
       <ol class="step-list">
-        <li v-for="(label, idx) in steps" :key="label">
+        <li v-for="(label, idx) in stepList" :key="label">
           <span class="step-list__num">{{ idx + 1 }}</span>
           {{ label }}
         </li>
       </ol>
 
       <div class="spacer" />
-      <AppButton @click="startFlow">☎ 함께 시작</AppButton>
+      <AppButton data-tutor-id="start-practice-button" :disabled="starting" @click="start">
+        {{ starting ? '준비 중…' : '함께 시작' }}
+      </AppButton>
     </div>
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
 import MascotTip from '@/components/common/MascotTip.vue'
 import AppButton from '@/components/common/AppButton.vue'
 import { useSessionStore } from '@/stores/session'
+import { useBankTheme } from '@/composables/useBankTheme'
+import { fetchScenarios, startPractice } from '@/api/practiceApi'
 import { SCENARIOS } from '@/assets/data/scenarios'
+import type { Scenario } from '@/types'
 
 const router = useRouter()
 const store = useSessionStore()
 
-const scenario = SCENARIOS[0] // '함께 해보기'는 병원비 시나리오로 고정 안내
-const formattedAmount = computed(() => scenario.amount.toLocaleString('ko-KR'))
-const steps = ['보낼 계좌', '받는 은행', '계좌번호', '금액', '확인', '완료']
+const pendingBank = computed(() => store.pendingBank)
+const { themeStyle } = useBankTheme(pendingBank)
 
-function startFlow() {
-  store.startFlow('together', scenario.id)
-  router.push('/together/step/1')
+const scenarios = ref<Scenario[]>(SCENARIOS)
+// 함께 해보기는 고른 은행에 맞는 문제를 자동으로 하나 골라서 안내해요.
+const scenario = computed(
+  () => scenarios.value.find((s) => s.bankCode === store.pendingBankCode) || scenarios.value[0] || SCENARIOS[0]
+)
+const formattedAmount = computed(() => scenario.value.amount.toLocaleString('ko-KR'))
+const stepList = ['출금 계좌', '받는 분 계좌', '금액', '최종 확인', '모의 인증']
+const starting = ref(false)
+
+onMounted(async () => {
+  if (!store.pendingBankCode) {
+    router.replace('/together')
+    return
+  }
+  scenarios.value = await fetchScenarios()
+})
+
+async function start() {
+  if (!store.pendingBankCode) return
+  starting.value = true
+  try {
+    store.beginFlow('together', scenario.value.scenarioId)
+    const result = await startPractice({
+      scenarioId: scenario.value.scenarioId,
+      bankCode: store.pendingBankCode,
+      helpLevel: 'BEGINNER'
+    })
+    store.applyStartResult(result.practiceId, result.currentStep, result.mission, store.pendingBankCode)
+    router.push('/together/step/1')
+  } finally {
+    starting.value = false
+  }
 }
 </script>
 

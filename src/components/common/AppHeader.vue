@@ -1,7 +1,7 @@
 <template>
   <header class="app-header" :class="{ 'app-header--bank': bank }">
     <button v-if="showBack" class="app-header__icon-btn" aria-label="이전 화면으로" @click="$emit('back')">
-      ‹
+      <Icon name="chevron-left" :size="20" />
     </button>
     <div
       v-else
@@ -9,11 +9,12 @@
       :class="{ 'app-header__brand--bank': bank }"
       aria-hidden="true"
     >
-      {{ bank?.theme?.motif || '한' }}
+      <Icon v-if="bank" name="star" :size="16" />
+      <Icon v-else name="sparkle" :size="16" />
     </div>
 
     <div class="app-header__title-wrap">
-      <h1 class="app-header__title">{{ bank ? bank.name : title }}</h1>
+      <h1 class="app-header__title">{{ bank ? bank.bankName : title }}</h1>
       <span v-if="bank" class="app-header__subtitle">{{ title }} · 가상 연습용 은행</span>
     </div>
 
@@ -25,23 +26,34 @@
         aria-label="홈으로 이동"
         @click="$emit('home')"
       >
-        ⌂
+        <Icon name="home" :size="20" />
       </button>
     </div>
     <span v-if="bank" class="app-header__accent-line" aria-hidden="true"></span>
   </header>
 </template>
 
-<script setup>
-defineProps({
-  title: { type: String, required: true },
-  showBack: { type: Boolean, default: false },
-  showHome: { type: Boolean, default: false },
-  badge: { type: String, default: '' },
-  // 은행 객체(assets/data/banks.js)를 전달하면 해당 은행의 테마(예: KB국민은행 스타일)로 헤더를 표시
-  bank: { type: Object, default: null }
-})
-defineEmits(['back', 'home'])
+<script setup lang="ts">
+import type { Bank } from '@/types'
+import Icon from './icons/Icon.vue'
+
+withDefaults(
+  defineProps<{
+    title: string
+    showBack?: boolean
+    showHome?: boolean
+    badge?: string
+    // 은행 객체(assets/data/banks.ts)를 전달하면 해당 은행의 테마(예: KB국민은행 스타일)로 헤더를 표시
+    bank?: Bank | null
+  }>(),
+  {
+    showBack: false,
+    showHome: false,
+    badge: '',
+    bank: null
+  }
+)
+defineEmits<{ back: []; home: [] }>()
 </script>
 
 <style scoped>

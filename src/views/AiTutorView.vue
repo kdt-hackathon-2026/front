@@ -31,10 +31,13 @@
           v-model="draft"
           type="text"
           class="ask-bar__input"
+          data-tutor-id="ask-bar-input"
           placeholder="궁금한 것을 입력하세요"
           @keyup.enter="ask(draft)"
         />
-        <button class="ask-bar__mic" aria-label="음성으로 묻기" @click="showVoiceModal = true">🎤</button>
+        <button class="ask-bar__mic" aria-label="음성으로 묻기" @click="showVoiceModal = true">
+          <Icon name="mic" :size="20" />
+        </button>
       </div>
     </div>
 
@@ -42,25 +45,29 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
 import MascotTip from '@/components/common/MascotTip.vue'
 import VoiceInputModal from '@/components/common/VoiceInputModal.vue'
+import Icon from '@/components/common/icons/Icon.vue'
 import { useTTS } from '@/composables/useTTS'
+
+interface ChatMessage {
+  from: 'bot' | 'user'
+  text: string
+}
 
 const router = useRouter()
 const { speak } = useTTS()
 
 const draft = ref('')
 const showVoiceModal = ref(false)
-const messages = ref([
-  { from: 'bot', text: '안녕하세요! 무엇을 도와드릴까요?' }
-])
+const messages = ref<ChatMessage[]>([{ from: 'bot', text: '안녕하세요! 무엇을 도와드릴까요?' }])
 const quickQuestions = ['계좌이체는 어디서 해?', '여기는 뭐 하는 화면이야?', '다음엔 뭘 눌러?']
 
-function ask(text) {
+function ask(text: string) {
   if (!text) return
   messages.value.push({ from: 'user', text })
   draft.value = ''
@@ -70,11 +77,11 @@ function ask(text) {
   speak(reply)
 }
 
-function onVoiceResult(text) {
+function onVoiceResult(text: string) {
   ask(text)
 }
 
-function generateReply(text) {
+function generateReply(text: string): string {
   if (text.includes('이체')) return '홈 화면 맨 위 "계좌이체 연습" 버튼을 눌러주세요. 함께 6단계로 연습해요.'
   if (text.includes('화면')) return '지금은 AI 튜터에게 궁금한 것을 물어보는 화면이에요.'
   return '조금 더 쉬운 말로 다시 한 번 말씀해 주시겠어요?'
@@ -145,8 +152,10 @@ function generateReply(text) {
   border-radius: 50%;
   border: none;
   background: var(--color-primary);
-  color: #fff;
-  font-size: 22px;
+  color: var(--color-on-primary, #fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 </style>

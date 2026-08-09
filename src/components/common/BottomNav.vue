@@ -7,22 +7,30 @@
       :class="{ 'is-active': modelValue === tab.key }"
       @click="$emit('update:modelValue', tab.key)"
     >
-      <span class="bottom-nav__icon" aria-hidden="true">{{ tab.icon }}</span>
+      <span class="bottom-nav__icon" aria-hidden="true"><Icon :name="tab.icon" :size="20" /></span>
       <span class="bottom-nav__label">{{ tab.label }}</span>
     </button>
   </nav>
 </template>
 
-<script setup>
-defineProps({
-  modelValue: { type: String, default: 'home' }
-})
-defineEmits(['update:modelValue'])
+<script setup lang="ts">
+import Icon from './icons/Icon.vue'
+import type { IconName } from './icons/registry'
 
-const tabs = [
-  { key: 'record', icon: '📋', label: '실습하기' },
-  { key: 'home', icon: '⌂', label: '홈' },
-  { key: 'settings', icon: '⚙', label: '설정' }
+withDefaults(
+  defineProps<{
+    modelValue?: string
+  }>(),
+  {
+    modelValue: 'home'
+  }
+)
+defineEmits<{ 'update:modelValue': [key: string] }>()
+
+const tabs: { key: string; icon: IconName; label: string }[] = [
+  { key: 'record', icon: 'clipboard', label: '실습하기' },
+  { key: 'home', icon: 'home', label: '홈' },
+  { key: 'settings', icon: 'settings', label: '설정' }
 ]
 </script>
 
@@ -53,7 +61,7 @@ const tabs = [
   font-weight: 700;
 }
 .bottom-nav__icon {
-  font-size: 20px;
+  display: flex;
 }
 .bottom-nav__label {
   font-size: var(--fs-caption);

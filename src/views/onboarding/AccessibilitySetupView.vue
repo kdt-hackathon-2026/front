@@ -1,7 +1,7 @@
 <template>
   <div class="page">
     <AppHeader title="처음 설정" badge="처음 설정" show-back @back="router.back()" />
-    <StepProgress :current="2" :total="4" />
+    <StepProgress :current="3" :total="4" />
 
     <div class="screen">
       <h2 class="screen-title">보기와 듣기를 맞출게요</h2>
@@ -12,15 +12,15 @@
           <span class="setting-row__label">화면</span>
           <strong>{{ fontSizeLabel }}</strong>
         </div>
-        <span class="setting-row__chevron">›</span>
+        <Icon name="chevron-right" :size="18" class="setting-row__chevron" />
       </div>
 
       <div class="setting-row" @click="toggleVoice">
         <div class="setting-row__text">
           <span class="setting-row__label">음성 안내</span>
-          <strong>{{ store.settings.voiceEnabled ? '켜짐' : '꺼짐' }}</strong>
+          <strong>{{ store.settings.voiceGuideEnabled ? '켜짐' : '꺼짐' }}</strong>
         </div>
-        <span class="setting-row__chevron">›</span>
+        <Icon name="chevron-right" :size="18" class="setting-row__chevron" />
       </div>
 
       <div class="setting-row" @click="cycleHelpLevel">
@@ -28,7 +28,7 @@
           <span class="setting-row__label">도움 수준</span>
           <strong>{{ helpLevelLabel }}</strong>
         </div>
-        <span class="setting-row__chevron">›</span>
+        <Icon name="chevron-right" :size="18" class="setting-row__chevron" />
       </div>
 
       <div class="preview" :style="{ fontSize: 'var(--fs-body-lg)' }">
@@ -41,40 +41,51 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '@/components/common/AppHeader.vue'
 import StepProgress from '@/components/common/StepProgress.vue'
 import AppButton from '@/components/common/AppButton.vue'
+import Icon from '@/components/common/icons/Icon.vue'
 import { useSessionStore } from '@/stores/session'
 import { useTTS } from '@/composables/useTTS'
+import type { HelpLevel, TextSize } from '@/types'
 
 const router = useRouter()
 const store = useSessionStore()
 const { speak } = useTTS()
 
-const FONT_SIZES = ['basic', 'large', 'xlarge']
-const FONT_LABEL = { basic: '기본 크게 보기', large: '크게 보기', xlarge: '아주 크게 보기' }
-const HELP_LEVELS = ['first', 'guided', 'solo']
-const HELP_LABEL = { first: '처음 연습 (모두 설명)', guided: '힌트 먼저', solo: '혼자 연습' }
+const TEXT_SIZES: TextSize[] = ['BASIC', 'LARGE', 'XLARGE']
+const TEXT_SIZE_LABEL: Record<TextSize, string> = {
+  BASIC: '기본 크게 보기',
+  LARGE: '크게 보기',
+  XLARGE: '아주 크게 보기'
+}
+const HELP_LEVELS: HelpLevel[] = ['BEGINNER', 'NORMAL', 'ADVANCED']
+const HELP_LABEL: Record<HelpLevel, string> = {
+  BEGINNER: '처음 연습 (모두 설명)',
+  NORMAL: '힌트 먼저',
+  ADVANCED: '혼자 연습'
+}
+const FONT_SCALE: Record<TextSize, number> = { BASIC: 1, LARGE: 1.15, XLARGE: 1.3 }
 
-const fontSizeLabel = computed(() => FONT_LABEL[store.settings.fontSize])
+const fontSizeLabel = computed(() => TEXT_SIZE_LABEL[store.settings.textSize])
 const helpLevelLabel = computed(() => HELP_LABEL[store.settings.helpLevel])
 
-function applyFontScale(size) {
-  const scale = { basic: 1, large: 1.15, xlarge: 1.3 }[size] || 1
-  document.documentElement.style.setProperty('--font-scale', scale)
+function applyFontScale(size: TextSize) {
+  const scale = FONT_SCALE[size] || 1
+  document.documentElement.style.setProperty('--font-scale', String(scale))
 }
 
 function cycleFontSize() {
-  const idx = FONT_SIZES.indexOf(store.settings.fontSize)
-  const next = FONT_SIZES[(idx + 1) % FONT_SIZES.length]
-  store.updateSettings({ fontSize: next })
+  const idx = TEXT_SIZES.indexOf(store.settings.textSize)
+  const next = TEXT_SIZES[(idx + 1) % TEXT_SIZES.length]
+  store.updateSettings({ textSize: next })
   applyFontScale(next)
 }
 function toggleVoice() {
-  store.updateSettings({ voiceEnabled: !store.settings.voiceEnabled })
+  store.updateSettings({ voiceGuideEnabled: !store.settings.voiceGuideEnabled })
 }
 function cycleHelpLevel() {
   const idx = HELP_LEVELS.indexOf(store.settings.helpLevel)

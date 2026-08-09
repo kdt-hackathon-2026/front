@@ -7,20 +7,28 @@
       :class="{ 'is-active': label === active }"
       @click="$emit('select', label)"
     >
-      <span class="quick-menu__icon" aria-hidden="true">{{ ICONS[i % ICONS.length] }}</span>
+      <span class="quick-menu__icon" aria-hidden="true"><Icon :name="icons[i % icons.length] || 'menu'" :size="18" /></span>
       <span class="quick-menu__label">{{ label }}</span>
     </button>
   </div>
 </template>
 
-<script setup>
-defineProps({
-  items: { type: Array, required: true },
-  active: { type: String, default: '' }
-})
-defineEmits(['select'])
+<script setup lang="ts">
+import Icon from './icons/Icon.vue'
+import type { IconName } from './icons/registry'
 
-const ICONS = ['🔍', '⇄', '＋', '📊', '≡']
+withDefaults(
+  defineProps<{
+    items: string[]
+    active?: string
+    icons?: IconName[]
+  }>(),
+  {
+    active: '',
+    icons: () => ['search', 'transfer', 'plus', 'chart', 'menu']
+  }
+)
+defineEmits<{ select: [label: string] }>()
 </script>
 
 <style scoped>

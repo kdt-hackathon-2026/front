@@ -3,18 +3,21 @@
     v-if="visible"
     class="ai-fab"
     aria-label="AI 튜터 불러오기"
+    data-tutor-id="ai-helper-fab"
     @click="$emit('click')"
   >
-    <span class="ai-fab__icon" aria-hidden="true">🐥</span>
+    <MascotCharacter :size="26" />
     <span class="ai-fab__label">AI 도우미</span>
   </button>
 </template>
 
-<script setup>
-defineProps({
-  visible: { type: Boolean, default: true }
+<script setup lang="ts">
+import MascotCharacter from './MascotCharacter.vue'
+
+withDefaults(defineProps<{ visible?: boolean }>(), {
+  visible: true
 })
-defineEmits(['click'])
+defineEmits<{ click: [] }>()
 </script>
 
 <style scoped>
@@ -27,7 +30,7 @@ defineEmits(['click'])
   align-items: center;
   gap: 6px;
   min-height: 48px;
-  padding: 10px 16px 10px 12px;
+  padding: 8px 16px 8px 10px;
   border: none;
   border-radius: 999px;
   background: var(--color-primary);
@@ -39,8 +42,5 @@ defineEmits(['click'])
 }
 .ai-fab:active {
   transform: scale(0.97);
-}
-.ai-fab__icon {
-  font-size: 20px;
 }
 </style>

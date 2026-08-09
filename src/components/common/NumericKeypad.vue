@@ -8,24 +8,36 @@
       @click="handlePress(key)"
       :aria-label="key.label || key.value"
     >
-      {{ key.display ?? key.value }}
+      <Icon v-if="key.iconName" :name="key.iconName" :size="20" />
+      <template v-else>{{ key.display ?? key.value }}</template>
     </button>
   </div>
 </template>
 
-<script setup>
-const emit = defineEmits(['input', 'backspace', 'clear'])
+<script setup lang="ts">
+import Icon from './icons/Icon.vue'
+import type { IconName } from './icons/registry'
 
-const keys = [
+interface KeypadKey {
+  value: string
+  display?: string
+  iconName?: IconName
+  action?: boolean
+  label?: string
+}
+
+const emit = defineEmits<{ input: [digit: string]; backspace: []; clear: [] }>()
+
+const keys: KeypadKey[] = [
   { value: '1' }, { value: '2' }, { value: '3' },
   { value: '4' }, { value: '5' }, { value: '6' },
   { value: '7' }, { value: '8' }, { value: '9' },
   { value: 'clear', display: '전체삭제', action: true, label: '전체 삭제' },
   { value: '0' },
-  { value: 'back', display: '⌫', action: true, label: '한 글자 삭제' }
+  { value: 'back', iconName: 'backspace', action: true, label: '한 글자 삭제' }
 ]
 
-function handlePress(key) {
+function handlePress(key: KeypadKey) {
   if (key.value === 'clear') {
     emit('clear')
   } else if (key.value === 'back') {
@@ -51,6 +63,9 @@ function handlePress(key) {
   font-weight: 700;
   color: var(--color-text);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .keypad__key:active {
   background: var(--color-primary-light);

@@ -5,7 +5,9 @@
       <span class="confirm-row__value">{{ value }}</span>
     </div>
     <div class="confirm-row__actions">
-      <button v-if="editable" class="confirm-row__edit" @click="$emit('edit')">수정</button>
+      <button v-if="editable" class="confirm-row__edit" @click="$emit('edit')">
+        <Icon name="pencil" :size="14" /> 수정
+      </button>
       <button
         class="confirm-row__check"
         :class="{ 'is-checked': checked }"
@@ -13,20 +15,28 @@
         :aria-label="`${label} 확인함`"
         @click="$emit('toggle')"
       >
-        {{ checked ? '✓' : '' }}
+        <Icon v-if="checked" name="check" :size="16" />
       </button>
     </div>
   </div>
 </template>
 
-<script setup>
-defineProps({
-  label: { type: String, required: true },
-  value: { type: String, required: true },
-  checked: { type: Boolean, default: false },
-  editable: { type: Boolean, default: true }
-})
-defineEmits(['toggle', 'edit'])
+<script setup lang="ts">
+import Icon from './icons/Icon.vue'
+
+withDefaults(
+  defineProps<{
+    label: string
+    value: string
+    checked?: boolean
+    editable?: boolean
+  }>(),
+  {
+    checked: false,
+    editable: true
+  }
+)
+defineEmits<{ toggle: []; edit: [] }>()
 </script>
 
 <style scoped>
@@ -65,6 +75,9 @@ defineEmits(['toggle', 'edit'])
   font-size: var(--fs-caption);
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .confirm-row__check {
   width: 32px;
@@ -73,7 +86,9 @@ defineEmits(['toggle', 'edit'])
   border: 2px solid var(--color-border);
   background: #fff;
   color: #fff;
-  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
 }
 .confirm-row__check.is-checked {

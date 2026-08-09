@@ -12,11 +12,11 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  current: { type: Number, required: true },
-  total: { type: Number, required: true }
-})
+<script setup lang="ts">
+defineProps<{
+  current: number
+  total: number
+}>()
 </script>
 
 <style scoped>

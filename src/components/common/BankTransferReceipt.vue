@@ -28,16 +28,23 @@
   </div>
 </template>
 
-<script setup>
-defineProps({
-  receiverName: { type: String, required: true },
-  bankName: { type: String, required: true },
-  maskedAccountNumber: { type: String, default: '' },
-  withdrawLabel: { type: String, default: '' },
-  formattedAmount: { type: String, required: true },
-  formattedRemaining: { type: String, default: '' }
-})
-defineEmits(['home', 'history'])
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    receiverName: string
+    bankName: string
+    maskedAccountNumber?: string
+    withdrawLabel?: string
+    formattedAmount: string
+    formattedRemaining?: string
+  }>(),
+  {
+    maskedAccountNumber: '',
+    withdrawLabel: '',
+    formattedRemaining: ''
+  }
+)
+defineEmits<{ home: []; history: [] }>()
 </script>
 
 <style scoped>
