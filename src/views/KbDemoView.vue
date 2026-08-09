@@ -384,6 +384,11 @@ const currentYearMonth = computed(() => new Intl.DateTimeFormat('ko-KR', { year:
 
 onMounted(() => {
   session.restoreFromLocalStorage()
+  // 이 은행 데모 화면은 홈 화면의 인트로 모션을 거치지 않고 바로 들어올 수 있어(예: 은행 선택 후 KB 선택),
+  // 안전 고지에 아직 동의하지 않은 사용자에게는 여기서도 한 번 더 보여줍니다.
+  if (localStorage.getItem('hangeoleum.safetyConsent') !== 'true') {
+    showSafetyConsent.value = true
+  }
 })
 
 onBeforeUnmount(() => {

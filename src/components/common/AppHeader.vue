@@ -21,7 +21,7 @@
     <div class="app-header__right">
       <span v-if="badge" class="app-header__badge">{{ badge }}</span>
       <button
-        v-if="false && showHome"
+        v-if="showHome"
         :data-tutor-id="homeTutorId"
         class="app-header__icon-btn"
         aria-label="홈으로 이동"
