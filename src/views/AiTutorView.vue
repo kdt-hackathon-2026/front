@@ -82,7 +82,7 @@ function onVoiceResult(text: string) {
 }
 
 function generateReply(text: string): string {
-  if (text.includes('이체')) return '홈 화면 맨 위 "계좌이체 연습" 버튼을 눌러주세요. 함께 6단계로 연습해요.'
+  if (text.includes('이체')) return '홈 화면 맨 위 "계좌이체 연습" 버튼을 눌러주세요. 함께 5단계로 연습해요.'
   if (text.includes('화면')) return '지금은 AI 튜터에게 궁금한 것을 물어보는 화면이에요.'
   return '조금 더 쉬운 말로 다시 한 번 말씀해 주시겠어요?'
 }
